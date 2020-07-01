@@ -129,10 +129,29 @@ target_link_libraries(diligent-graph-vulkan
 
 add_subdirectory(tools)
 
-# Install and packaging
-install(TARGETS diligent-graph diligent-graph-xcb diligent-graph-opengl diligent-graph-vulkan)
+# Install
+install(TARGETS diligent-graph diligent-graph-xcb diligent-graph-opengl diligent-graph-vulkan
+        EXPORT diligent-graph
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+)
 install(DIRECTORY include DESTINATION .)
+install(FILES 
+          external/imgui/imconfig.h 
+          external/imgui/imgui.h 
+          external/imgui/imgui_internal.h
+          external/imgui/imstb_rectpack.h
+          external/imgui/imstb_textedit.h 
+          external/imgui/imstb_truetype.h
+        DESTINATION 
+          external/imgui)
 
+install(EXPORT diligent-graph DESTINATION share/cmake)
+install(FILES cmake/diligent-graph-config.cmake DESTINATION share/cmake)
+
+
+# Packaging (debian by default)
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME diligent-graph)
 set(CPACK_DEBIAN_PACKAGE_NAME diligent-graph)
