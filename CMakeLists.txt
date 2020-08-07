@@ -127,7 +127,7 @@ target_link_libraries(diligent-graph-vulkan
     diligent-engine-vulkan
 )
 
-add_subdirectory(tools)
+#add_subdirectory(tools)
 
 # Install
 install(TARGETS diligent-graph diligent-graph-xcb diligent-graph-opengl diligent-graph-vulkan
