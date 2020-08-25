@@ -44,9 +44,9 @@ class XCBOpenGLRenderWindow : public XCBRenderWindow
 
 public:
 
-	XCBOpenGLRenderWindow(RenderWindowListener* listener);
+    XCBOpenGLRenderWindow(RenderWindowListener* listener);
 
-	virtual void create() override;
+    virtual void create() override;
 
 private:
 
@@ -66,99 +66,105 @@ XCBOpenGLRenderWindow::XCBOpenGLRenderWindow(RenderWindowListener* listener) : X
 {
 }
 
+
+static bool create_context_error_handler_flag;
+
+static int create_context_error_handler(Display *dpy, XErrorEvent *error)
+{
+    (void) dpy;
+    (void) error->error_code;
+    create_context_error_handler_flag = true;
+    return 0;
+}
+
 void XCBOpenGLRenderWindow::create()
 {
-	int default_screen;
+    int default_screen;
 
-	// Open Xlib Display
-	Display* display = XOpenDisplay(0);
-	_display.reset(display);
-
-
-	if(!_display)
-		DG_THROW("Can't open display");
-
-	default_screen = DefaultScreen(display);
-
-	// Get the XCB connection from the display
-	xcb_connection_t *connection =
-			XGetXCBConnection(display);
-
-	if(!connection)
-		DG_THROW("Can't get xcb connection from display");
-
-	// Acquire event queue ownership
-	XSetEventQueueOwner(display, XCBOwnsEventQueue);
-
-	// Find XCB screen //
-	xcb_screen_t *screen = 0;
-	xcb_screen_iterator_t screen_iter =
-			xcb_setup_roots_iterator(xcb_get_setup(connection));
-	for(int screen_num = default_screen;
-			screen_iter.rem && screen_num > 0;
-			--screen_num, xcb_screen_next(&screen_iter));
-	screen = screen_iter.data;
+    // Open Xlib Display
+    Display* display = XOpenDisplay(0);
+    _display.reset(display);
 
 
-	int visualID = 0;
+    if(!_display)
+        DG_THROW("Can't open display");
 
-	// Query framebuffer configurations that match visual_attribs
+    default_screen = DefaultScreen(display);
 
-	static int visual_attribs[] =
-	{
-	    //GLX_X_RENDERABLE, True,
-	    GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-	    GLX_RENDER_TYPE, GLX_RGBA_BIT,
-	    //GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
-	    GLX_RED_SIZE, 8,
-	    GLX_GREEN_SIZE, 8,
-	    GLX_BLUE_SIZE, 8,
-	    GLX_ALPHA_SIZE, 8,
-	    GLX_DEPTH_SIZE, 24,
-	    GLX_STENCIL_SIZE, 8,
-	    GLX_DOUBLEBUFFER, True,
-	    //GLX_SAMPLE_BUFFERS  , 1,
-	    GLX_SAMPLES         , 4,
-	    None
-	};
+    // Get the XCB connection from the display
+    xcb_connection_t *connection =
+            XGetXCBConnection(display);
 
-	GLXFBConfig *fb_configs = 0;
-	int num_fb_configs = 0;
-	fb_configs = glXChooseFBConfig(display, default_screen, visual_attribs, &num_fb_configs);
-	if(!fb_configs || num_fb_configs == 0)
-		DG_THROW("glXGetFBConfigs failed\n");
+    if(!connection)
+        DG_THROW("Can't get xcb connection from display");
 
-	std::cout << "Found matching FB configs: " << num_fb_configs << std::endl;
+    // Acquire event queue ownership
+    XSetEventQueueOwner(display, XCBOwnsEventQueue);
 
-	// Select first framebuffer config and query visualID
-	GLXFBConfig fb_config = fb_configs[0];
-	glXGetFBConfigAttrib(display, fb_config, GLX_VISUAL_ID , &visualID);
+    // Find XCB screen //
+    xcb_screen_t *screen = 0;
+    xcb_screen_iterator_t screen_iter =
+            xcb_setup_roots_iterator(xcb_get_setup(connection));
+    for(int screen_num = default_screen;
+            screen_iter.rem && screen_num > 0;
+            --screen_num, xcb_screen_next(&screen_iter));
+    screen = screen_iter.data;
 
 
-	/* Create XID's for colormap and window */
-	xcb_colormap_t colormap = xcb_generate_id(connection);
+    int visualID = 0;
 
-	/* Create colormap */
-	xcb_create_colormap(
-			connection,
-			XCB_COLORMAP_ALLOC_NONE,
-			colormap,
-			screen->root,
-			visualID
-	);
+    // Query framebuffer configurations that match visual_attribs
 
-	createWindow(connection, screen->root, visualID, 1024, 768, colormap);
+    static int visual_attribs[] =
+    {
+        //GLX_X_RENDERABLE, True,
+        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        //GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+        GLX_RED_SIZE, 8,
+        GLX_GREEN_SIZE, 8,
+        GLX_BLUE_SIZE, 8,
+        GLX_ALPHA_SIZE, 8,
+        GLX_DEPTH_SIZE, 24,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, True,
+        //GLX_SAMPLE_BUFFERS  , 1,
+        //GLX_SAMPLES         , 4,
+        None
+    };
 
+    GLXFBConfig *fb_configs = 0;
+    int num_fb_configs = 0;
+    fb_configs = glXChooseFBConfig(display, default_screen, visual_attribs, &num_fb_configs);
+    if(!fb_configs || num_fb_configs == 0)
+        DG_THROW("glXGetFBConfigs failed\n");
+
+    // Select first framebuffer config and query visualID
+    GLXFBConfig fb_config = fb_configs[0];
+    glXGetFBConfigAttrib(display, fb_config, GLX_VISUAL_ID , &visualID);
+
+    /* Create XID's for colormap and window */
+    xcb_colormap_t colormap = xcb_generate_id(connection);
+
+    /* Create colormap */
+    xcb_create_colormap(
+            connection,
+            XCB_COLORMAP_ALLOC_NONE,
+            colormap,
+            screen->root,
+            visualID
+    );
+
+    createWindow(connection, screen->root, visualID, 1024, 768, colormap);
 
     XVisualInfo* vi = glXGetVisualFromFBConfig(display, fb_config);
-
 
     glXCreateContextAttribsARBProc glXCreateContextAttribsARB = nullptr;
     {
         // Create an oldstyle context first, to get the correct function pointer for glXCreateContextAttribsARB
         GLXContext ctx_old         = glXCreateContext(display, vi, 0, GL_TRUE);
-        //GLXContext ctx_old         = glXCreateNewContext(display, fb_config, GLX_RGBA_TYPE, 0, True);
         glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)glXGetProcAddress((const GLubyte*)"glXCreateContextAttribsARB");
+
         glXMakeCurrent(display, None, NULL);
         glXDestroyContext(display, ctx_old);
     }
@@ -169,25 +175,61 @@ void XCBOpenGLRenderWindow::create()
     int flags = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 //    flags |= GLX_CONTEXT_DEBUG_BIT_ARB;
 
-    int major_version = 4;
-    int minor_version = 3;
+    static const struct { int major, minor; } gl_versions[] = {
+        {4, 6},
+        {4, 5},
+        {4, 4},
+        {4, 3},
+        {4, 2},
+        {4, 1},
+        {4, 0},
 
-    static int context_attribs[] =
-    {
-        GLX_CONTEXT_MAJOR_VERSION_ARB, major_version,
-        GLX_CONTEXT_MINOR_VERSION_ARB, minor_version,
-        GLX_CONTEXT_FLAGS_ARB, flags,
-        None
+        {3, 3},
+        {3, 2},
+        {3, 1},
+        {3, 0},
+        // dont even try older versions
+
+        {0, 0} // end of list
     };
+    
+    //// create the context with the latest possible core version
+    GLXContext ctx = nullptr;
 
-    GLXContext    ctx  = glXCreateContextAttribsARB(display, fb_config, NULL, 1, context_attribs);
+    XErrorHandler old_handler = XSetErrorHandler(create_context_error_handler); // set an error handler that eats all errors
+    create_context_error_handler_flag = False;
+    
+    // probe through the OpenGL versions (latest first) and try to create the context 
+    for (int i = 0; gl_versions[i].major > 0; i++) 
+    {
+        int context_attribs[] =
+        {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, gl_versions[i].major,
+            GLX_CONTEXT_MINOR_VERSION_ARB, gl_versions[i].minor,
+            GLX_CONTEXT_FLAGS_ARB, flags,
+            None
+        };
+
+        create_context_error_handler_flag = false;
+        ctx  = glXCreateContextAttribsARB(display, fb_config, NULL, 1, context_attribs);
+        if (create_context_error_handler_flag)
+            ctx = nullptr;
+
+        if(ctx)
+        {
+            std::cout << "Succeeded to create an OpenGL context with core version: " << gl_versions[i].major << "." << gl_versions[i].minor << std::endl;
+            break;
+        }
+    }
+
+    // restore error handler 
+    XSetErrorHandler(old_handler);
+
     if (!ctx)
-    	DG_THROW("Failed to create GL context.\n");
+        DG_THROW("Failed to create GL context.\n");
 
     if(!glXMakeCurrent(display, _window, ctx))
-    	DG_THROW("glxMakeCurrent failed!");
-
-
+        DG_THROW("glxMakeCurrent failed!");
 
     Diligent::SwapChainDesc SCDesc;
     SCDesc.Usage |= SWAP_CHAIN_USAGE_COPY_SOURCE;
@@ -212,21 +254,21 @@ class XCBOpenGLRenderWindowFactory : public RenderWindowFactory
 {
 public:
 
-	XCBOpenGLRenderWindowFactory()
-	{
-		registerFactory("opengl", this);
-	}
+    XCBOpenGLRenderWindowFactory()
+    {
+        registerFactory("opengl", this);
+    }
 
-	~XCBOpenGLRenderWindowFactory()
-	{
-		unregisterFactory(this);
-	}
+    ~XCBOpenGLRenderWindowFactory()
+    {
+        unregisterFactory(this);
+    }
 
-	virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
-	{
-		RenderWindow* win = new XCBOpenGLRenderWindow(listener);
-		return win;
-	}
+    virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
+    {
+        RenderWindow* win = new XCBOpenGLRenderWindow(listener);
+        return win;
+    }
 
 };
 
