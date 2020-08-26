@@ -1,3 +1,4 @@
+#include <vector>
 #include <dg/material/shader_program.hpp>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>

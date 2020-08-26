@@ -90,6 +90,8 @@ target_link_libraries(diligent-graph
     diligent-engine
   PUBLIC
     assimp
+    -Wl,-rpath,/opt/diligent-graph/lib/
+    -Wl,-rpath,/opt/diligent-engine/lib/
 )
 
 
@@ -156,8 +158,7 @@ set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME diligent-graph)
 set(CPACK_DEBIAN_PACKAGE_NAME diligent-graph)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "diligent-graph")
-set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/diligent-graph")
-set(CPACK_INSTALL_PREFIX "/opt/diligent-graph")
+set(CPACK_PACKAGING_INSTALL_PREFIX /opt/diligent-graph)
 set(CPACK_PACKAGE_VERSION "0.1.1")
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "cssrobopec,libqt4-xml,libqt4-network,libqtgui4,treeupdatablereeti")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "diligent-engine")
