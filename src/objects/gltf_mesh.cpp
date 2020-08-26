@@ -73,15 +73,10 @@ void GLTFMesh::load(const std::string& filename)
 
 void GLTFMesh::initialize(SceneManager* manager)
 {
-
-    //RefCntAutoPtr<ITexture> env_map;
-    //CreateTextureFromFile("assets/textures/papermill.ktx", TextureLoadInfo{"Environment map"}, manager->device(), &env_map);
-    //CreateTextureFromFile("assets/textures/driving_school.ktx", TextureLoadInfo{"Environment map"}, manager->device(), &env_map);
-    //CreateTextureFromFile("out.dds", TextureLoadInfo{"Environment map"}, manager->device(), &env_map);
-
 	RefCntAutoPtr<ITexture> env_map = manager->getEnvironmentMap();
 
-    d->_env_map_srv = env_map->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
+    if(env_map)
+        d->_env_map_srv = env_map->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
     GLTF_PBR_Renderer::CreateInfo RendererCI;
     RendererCI.RTVFmt         = manager->swapChain()->GetDesc().ColorBufferFormat;
@@ -104,8 +99,9 @@ void GLTFMesh::initialize(SceneManager* manager)
         //{env_map,                RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
     };
     manager->context()->TransitionResourceStates(_countof(Barriers), Barriers);
-    d->_renderer->PrecomputeCubemaps(manager->device(), manager->context(), d->_env_map_srv);
 
+    if(d->_env_map_srv)
+        d->_renderer->PrecomputeCubemaps(manager->device(), manager->context(), d->_env_map_srv);
 
     d->_model.reset(new GLTF::Model(manager->device(), manager->context(), d->filename));
 
