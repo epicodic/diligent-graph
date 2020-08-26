@@ -46,7 +46,7 @@ public:
 
     XCBOpenGLRenderWindow(RenderWindowListener* listener);
 
-    virtual void create() override;
+    virtual void create(const CreationOptions& options) override;
 
 private:
 
@@ -77,7 +77,7 @@ static int create_context_error_handler(Display *dpy, XErrorEvent *error)
     return 0;
 }
 
-void XCBOpenGLRenderWindow::create()
+void XCBOpenGLRenderWindow::create(const CreationOptions& options)
 {
     int default_screen;
 
@@ -155,7 +155,7 @@ void XCBOpenGLRenderWindow::create()
             visualID
     );
 
-    createWindow(connection, screen->root, visualID, 1024, 768, colormap);
+    createWindow(connection, screen->root, visualID, options, colormap);
 
     XVisualInfo* vi = glXGetVisualFromFBConfig(display, fb_config);
 

@@ -60,7 +60,7 @@ XCBRenderWindow::~XCBRenderWindow()
 		xcb_free_cursor(_connection, p.second);
 }
 
-void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t screen_root,  int visual, int width, int height, xcb_colormap_t colormap)
+void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t screen_root,  int visual, const CreationOptions& options, xcb_colormap_t colormap)
 {
 
     XCBKeyboard::initializeXKB(connection);
@@ -76,8 +76,8 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
 	_display = XOpenDisplay(0);
 	_connection = connection;
 	_screen_root = screen_root;
-	_width = width;
-	_height = height;
+	_width = options.width;
+	_height = options.height;
 
 	_window = xcb_generate_id(_connection);
 
@@ -108,7 +108,7 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
 	      XCB_COPY_FROM_PARENT,
 	      _window,
 		  _screen_root,
-	      0, 0,
+	      options.posx, options.posy,
 		  _width, _height,
 	      0,
 	      XCB_WINDOW_CLASS_INPUT_OUTPUT,
@@ -134,6 +134,10 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
                         propertyCount,
                         properties);
 
+
+	// on some systems the position given in xcb_create_window is not respected, hence, move the window here explicitly
+	const static int coords[] = { options.posx, options.posy };
+	xcb_configure_window (connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, (const uint32_t*) coords);
 
 	_keyboard.reset(new XCBKeyboard(_connection));
 

@@ -48,8 +48,17 @@ public:
 
 };
 
+struct RenderWindowCreationOptions
+{
+	int posx = 0, posy = 0;
+	int width = 1024, height = 768;
+};
+
 class RenderWindow
 {
+public:
+	typedef RenderWindowCreationOptions CreationOptions;
+
 public:
 
 	RenderWindow(RenderWindowListener* listener);
@@ -60,7 +69,7 @@ public:
 
 	void setListener(RenderWindowListener* listener);
 
-	virtual void create() = 0;
+	virtual void create(const CreationOptions& options = CreationOptions()) = 0;
 
 public:
 
@@ -123,7 +132,6 @@ private:
 	RenderWindowListener* _listener;
 
 };
-
 
 class RenderWindowFactory
 {

@@ -19,7 +19,7 @@ public:
 
 	XCBVulkanRenderWindow(RenderWindowListener* listener);
 
-	virtual void create() override;
+	virtual void create(const CreationOptions& options) override;
 };
 
 
@@ -27,7 +27,7 @@ XCBVulkanRenderWindow::XCBVulkanRenderWindow(RenderWindowListener* listener) : X
 {
 }
 
-void XCBVulkanRenderWindow::create()
+void XCBVulkanRenderWindow::create(const CreationOptions& options)
 {
 	int default_screen;
 
@@ -45,7 +45,7 @@ void XCBVulkanRenderWindow::create()
 
 	auto screen = iter.data;
 
-	createWindow(connection, screen->root, screen->root_visual, 1920,1026);
+	createWindow(connection, screen->root, screen->root_visual, options);
 
 
     xcb_map_window(_connection, _window);

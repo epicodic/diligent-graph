@@ -32,7 +32,7 @@ public:
 
 protected:
 
-	void createWindow(xcb_connection_t* connection, xcb_window_t screen_root,  int visual, int width, int height, xcb_colormap_t colormap = 0);
+	void createWindow(xcb_connection_t* connection, xcb_window_t screen_root,  int visual, const CreationOptions& options, xcb_colormap_t colormap = 0);
 
 protected:
 
