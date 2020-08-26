@@ -159,13 +159,23 @@ set(CPACK_PACKAGE_NAME diligent-graph)
 set(CPACK_DEBIAN_PACKAGE_NAME diligent-graph)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "diligent-graph")
 set(CPACK_PACKAGING_INSTALL_PREFIX /opt/diligent-graph)
-set(CPACK_PACKAGE_VERSION "0.1.1")
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "cssrobopec,libqt4-xml,libqt4-network,libqtgui4,treeupdatablereeti")
+
+set(CPACK_PACKAGE_VERSION_MAJOR 0)
+set(CPACK_PACKAGE_VERSION_MINOR 1)
+
+set(BUILD_NUMBER_FILE "${CMAKE_CURRENT_BINARY_DIR}/build_number.txt")
+set(BUILD_NUMBER "1")
+IF(EXISTS ${BUILD_NUMBER_FILE})
+    file(READ ${BUILD_NUMBER_FILE} BUILD_NUMBER)
+    math(EXPR BUILD_NUMBER "${BUILD_NUMBER}+1")
+ENDIF()
+file(WRITE ${BUILD_NUMBER_FILE} "${BUILD_NUMBER}")
+
+set(CPACK_PACKAGE_VERSION_PATCH ${BUILD_NUMBER})
+
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "diligent-engine")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_PACKAGE_DESCRIPTION "Scene graph and material system for Diligent Engine")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "epicodic@web.de")
 
-
 include(CPack)
-
