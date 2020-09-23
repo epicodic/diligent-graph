@@ -8,15 +8,19 @@ namespace dg {
 
 using Real = double;
 
+using Matrix2 = Eigen::Matrix<Real,2,2>;
 using Matrix3 = Eigen::Matrix<Real,3,3>;
 using Matrix4 = Eigen::Matrix<Real,4,4>;
 
+using Vector2 = Eigen::Matrix<Real,2,1>;
 using Vector3 = Eigen::Matrix<Real,3,1>;
 using Vector4 = Eigen::Matrix<Real,4,1>;
 
+using Matrix2f = Eigen::Matrix<float,2,2>;
 using Matrix3f = Eigen::Matrix<float,3,3>;
 using Matrix4f = Eigen::Matrix<float,4,4>;
 
+using Vector2f = Eigen::Matrix<float,2,1>;
 using Vector3f = Eigen::Matrix<float,3,1>;
 using Vector4f = Eigen::Matrix<float,4,1>;
 
