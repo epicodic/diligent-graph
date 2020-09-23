@@ -176,24 +176,92 @@ public:
 
 	static float toSRGB(float v)
 	{
-	    return std::pow(v, 2.2f);
+		return std::pow(v, 2.2f);
 	}
 
-    static float fromSRGB(float v)
-    {
-	    return std::pow(v, 1.0f/2.2f);
-    }
+	static float fromSRGB(float v)
+	{
+		return std::pow(v, 1.0f/2.2f);
+	}
 
-    Color toSRGB() const
-    {
-        return Color(toSRGB(r), toSRGB(g), toSRGB(b), a);
-    }
+	Color toSRGB() const
+	{
+		return Color(toSRGB(r), toSRGB(g), toSRGB(b), a);
+	}
 
-    Color fromSRGB() const
-    {
-        return Color(fromSRGB(r), fromSRGB(g), fromSRGB(b), a);
-    }
+	Color fromSRGB() const
+	{
+		return Color(fromSRGB(r), fromSRGB(g), fromSRGB(b), a);
+	}
 
+	uint32_t toUInt32() const
+	{
+		uint8_t cr = r*255.0f;
+		uint8_t cg = g*255.0f;
+		uint8_t cb = b*255.0f;
+		uint8_t ca = a*255.0f;
+		return (cr << 0) + (cg << 8) + (cb << 16) + (ca << 24);
+	}
+
+	static dg::Color fromHexString(std::string s)
+	{
+		dg::Color color(0.0f,0.0f,0.0f,1.0f);
+
+		if(s.empty())
+			return color;
+
+		if(s[0]=='#') // remove an optional # at the beginning
+			s = s.substr(1);
+
+		std::string sub;
+		switch(s.length())
+		{
+			case 3: // #rgb
+				// #rgb is interpret as #rrggbb (hence double each character)
+				sub = s.substr(0,1);
+				color.r = hex_to_int(sub+sub) / 255.0f;
+				sub = s.substr(1,1);
+				color.g = hex_to_int(sub+sub) / 255.0f;
+				sub = s.substr(2,1);
+				color.b= hex_to_int(sub+sub) / 255.0f;
+				break;
+			case 4: // #rgba
+				// #rgba is interpret as #rrggbbaa (hence double each character)
+				sub = s.substr(0,1);
+				color.r = hex_to_int(sub+sub) / 255.0f;
+				sub = s.substr(1,1);
+				color.g = hex_to_int(sub+sub) / 255.0f;
+				sub = s.substr(2,1);
+				color.b= hex_to_int(sub+sub) / 255.0f;
+				sub = s.substr(3,1);
+				color.a= hex_to_int(sub+sub) / 255.0f;
+				break;
+			case 6: // #rrggbb
+				color.r = hex_to_int(s.substr(0,2)) / 255.0f;
+				color.g = hex_to_int(s.substr(2,2)) / 255.0f;
+				color.b = hex_to_int(s.substr(4,2)) / 255.0f;
+				break;            
+			case 8: // #rrggbb
+				color.r = hex_to_int(s.substr(0,2)) / 255.0f;
+				color.g = hex_to_int(s.substr(2,2)) / 255.0f;
+				color.b = hex_to_int(s.substr(4,2)) / 255.0f;
+				color.a = hex_to_int(s.substr(6,2)) / 255.0f;
+				break;      
+		}
+
+		return color;
+	}   
+
+private:
+
+	static int hex_to_int(const std::string& s)
+	{
+		std::stringstream ss;
+		int val = 0;
+		ss << std::hex << s;
+		ss >> val;
+		return val;
+	};
 };
 
 namespace colors
