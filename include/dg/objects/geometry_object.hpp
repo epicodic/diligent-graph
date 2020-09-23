@@ -4,6 +4,8 @@
 
 #include <dg/scene/renderable.hpp>
 
+#include <dg/geometry/geometry.hpp>
+
 namespace dg {
 
 class GeometryObject : public Renderable
@@ -11,27 +13,12 @@ class GeometryObject : public Renderable
 
 public:
 
-	GeometryObject(SceneManager* manager);
-	virtual ~GeometryObject();
+	GeometryObject(SceneManager* manager, const IGeometry& geometry, const std::vector<Color>& colors = std::vector<Color>());
 
 public:
 
 	void setMaterial(IMaterial::Ptr m);
 	IMaterial::ConstPtr getMaterial() const { return _material; }
-
-protected:
-
-	std::vector<Vector3> _positions;
-	std::vector<Vector3> _normals;
-	std::vector<std::uint32_t> _indices;
-
-protected:
-
-	void generate();
-
-private:
-
-	SceneManager* _manager;
 
 };
 

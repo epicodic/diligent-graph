@@ -1,15 +1,18 @@
-
-#include <dg/objects/sphere_object.hpp>
+#include <dg/geometry/sphere_geometry.hpp>
 
 namespace dg {
 
-SphereObject::SphereObject(SceneManager* manager, const Params& p) : GeometryObject(manager)
+SphereGeometry::SphereGeometry(const Params& p, bool generate_normals, bool generate_uvs)
 {
-	int num = (p.heightSegments + 1) * (p.widthSegments + 1);
+    int num = (p.heightSegments + 1) * (p.widthSegments + 1);
 
 	_positions.resize(num);
-	_normals.resize(num);
 
+	if(generate_normals)
+		_normals.resize(num);
+
+	if(generate_uvs)
+		_uvs.resize(num);
 
 	float phiLength = p.phiEnd - p.phiStart;
 	float thetaLength = p.thetaEnd - p.thetaStart;
@@ -25,12 +28,17 @@ SphereObject::SphereObject(SceneManager* manager, const Params& p) : GeometryObj
 
 			float u = (float)ix / p.widthSegments;
 			float x = - p.radius * std::cos( p.phiStart   + u * phiLength ) * std::sin( p.thetaStart + v * thetaLength );
-			float y =   p.radius * std::cos( p.thetaStart + v * thetaLength );
-			float z =   p.radius * std::sin( p.phiStart   + u * phiLength ) * std::sin( p.thetaStart + v * thetaLength );
+			float y =   p.radius * std::sin( p.phiStart   + u * phiLength ) * std::sin( p.thetaStart + v * thetaLength );
+			float z =   p.radius * std::cos( p.thetaStart + v * thetaLength );
 
 			_positions[idx] = {x, y, z};
-			_normals[idx] = _positions[idx].normalized();
-			//uvs->next() = {u, 1 - v};
+
+			if(generate_normals)
+				_normals[idx] = _positions[idx].normalized();
+
+			if(generate_uvs)
+				_uvs[idx] << u, v;
+
 		}
 	}
 
@@ -51,23 +59,18 @@ SphereObject::SphereObject(SceneManager* manager, const Params& p) : GeometryObj
 			if ( iy != 0 || p.thetaStart > 0 )
 			{
 				_indices.push_back(a);
-				_indices.push_back(b);
 				_indices.push_back(d);
+				_indices.push_back(b);
 			}
 
 			if ( iy != p.heightSegments-1 || p.thetaEnd < M_PI )
 			{
 				_indices.push_back(b);
-				_indices.push_back(c);
 				_indices.push_back(d);
+				_indices.push_back(c);
 			}
 		}
 	}
-
-	generate();
-	_primitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	//_rasterizerDesc.FillMode = FILL_MODE_WIREFRAME;
-	//_rasterizerDesc.CullMode = CULL_MODE_FRONT;
 }
 
 
