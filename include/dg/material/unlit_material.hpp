@@ -8,7 +8,7 @@
 
 namespace dg {
 
-class UnlitMaterial : public Material<material::Diffuse>
+class UnlitMaterial : public Material<material::RasterizerParams, material::Diffuse>
 {
 public:
 	DG_PTR(UnlitMaterial)

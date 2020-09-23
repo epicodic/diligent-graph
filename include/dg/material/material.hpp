@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dg/core/common.hpp>
+#include "DiligentCore/Graphics/GraphicsEngine/interface/RasterizerState.h"
 #include "color.hpp"
 
 #include "shader_program.hpp"
@@ -31,31 +32,29 @@ class BaseMaterial : public IMaterial
 {
 };
 
-template <typename ... Components>
-struct MixinResolve;
-
-template <typename ... Components>
-class Material;
-
-template<typename Component>
-class Material<Component> : public BaseMaterial, public Component
+template<typename ... Components>
+class Material : public BaseMaterial, public Components...
 {
-	using ResolveT = MixinResolve<Component>;
-};
-
-template<>
-class Material<> : public IMaterial
-{
-};
-
-template<typename Component, typename ... Components>
-class Material<Component, Components...> : public BaseMaterial, Component, Components...
-{
-	using ResolveT = MixinResolve<Component, Components...>;
 };
 
 
 namespace material {
+
+struct RasterizerParams
+{
+
+	enum class CullMode : Int8
+	{
+		Undefined = CULL_MODE_UNDEFINED,
+		None = CULL_MODE_NONE,
+		Front = CULL_MODE_FRONT,
+		Back = CULL_MODE_BACK
+	};
+
+	CullMode cull_mode = CullMode::Back;
+
+};
+
 
 struct Diffuse
 {
@@ -64,7 +63,6 @@ struct Diffuse
 	float opacity = 1;
 	RefCntAutoPtr<ITexture> texture;
 };
-
 
 
 }

@@ -122,6 +122,9 @@ void UnlitMaterial::setupPSODesc(PipelineStateDesc& desc)
 	desc.GraphicsPipeline.pVS = _shader_program->getVertexShader();
 	desc.GraphicsPipeline.pPS = _shader_program->getPixelShader();
 
+
+    desc.GraphicsPipeline.RasterizerDesc.CullMode = (CULL_MODE) cull_mode;
+
 	desc.GraphicsPipeline.BlendDesc.IndependentBlendEnable = False;
 	RenderTargetBlendDesc& rt0 = desc.GraphicsPipeline.BlendDesc.RenderTargets[0];
 	rt0 = _blend_desc;
