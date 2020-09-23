@@ -45,8 +45,8 @@ public:
 	IMaterial::Ptr _material;
 
 	RenderOrder                _render_order;
-    RasterizerStateDesc        _rasterizerDesc;
-    DepthStencilStateDesc      _depthStencilDesc;
+	RasterizerStateDesc        _rasterizerDesc;
+	DepthStencilStateDesc      _depthStencilDesc;
 	RefCntAutoPtr<IBuffer>     _vertexBuffer;
 	RefCntAutoPtr<IBuffer>     _indexBuffer;
 	std::uint32_t              _indexCount = 0;
