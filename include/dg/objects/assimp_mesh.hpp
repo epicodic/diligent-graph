@@ -12,7 +12,7 @@ class AssimpMesh : public ManualObject
 public:
 	DG_PTR(AssimpMesh)
 
-    AssimpMesh(SceneManager* manager);
+    AssimpMesh(SceneManager* manager, IMaterial::Ptr material = IMaterial::Ptr());
 	virtual ~AssimpMesh();
 
 public:

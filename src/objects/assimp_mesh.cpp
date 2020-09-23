@@ -13,7 +13,7 @@ namespace dg {
 class AssimpMesh::Pimpl
 {
 public:
-    Pimpl(AssimpMesh* q, SceneManager* manager);
+    Pimpl(AssimpMesh* q, SceneManager* manager, IMaterial::Ptr material);
 
 
     SceneManager* manager = nullptr;
@@ -21,7 +21,8 @@ public:
 
     //std::map<std::string, OgreUtils::Material::SharedPtr> m_materials;
 
-    dg::UnlitMaterial::Ptr material;
+    dg::UnlitMaterial::Ptr default_material;
+    IMaterial::Ptr material;
 
     AssimpMesh* q;
 
@@ -35,9 +36,13 @@ public:
 
 };
 
-AssimpMesh::Pimpl::Pimpl(AssimpMesh* q, SceneManager* manager) : q(q), manager(manager)
+AssimpMesh::Pimpl::Pimpl(AssimpMesh* q, SceneManager* manager, IMaterial::Ptr material) : q(q), manager(manager)
 {
-    material = dg::UnlitMaterial::make(manager->device());
+    default_material = dg::UnlitMaterial::make(manager->device());
+    if(!material)
+        this->material=default_material;
+    else    
+        this->material=material;
 }
 
 void AssimpMesh::Pimpl::loadMesh(const std::string& filename)
@@ -112,7 +117,6 @@ void AssimpMesh::Pimpl::loadSubMesh(const aiMesh* m, const aiMatrix4x4& transfor
     bool useColor = false;
     if(m->mColors[0])
         useColor = true;
-
 
     // fill in the vertex data
     for(size_t i=0; i<m->mNumVertices; ++i)
@@ -189,13 +193,13 @@ void AssimpMesh::Pimpl::loadSubMesh(const aiMesh* m, const aiMatrix4x4& transfor
 
 void AssimpMesh::Pimpl::setOpacity(float opacity)
 {
-    material->opacity = opacity;
+    default_material->opacity = opacity;
 }
 
 
-AssimpMesh::AssimpMesh(SceneManager* manager) : ManualObject(manager)
+AssimpMesh::AssimpMesh(SceneManager* manager, IMaterial::Ptr material) : ManualObject(manager)
 {
-    d.reset(new Pimpl(this, manager));
+    d.reset(new Pimpl(this, manager, material));
 }
 
 AssimpMesh::~AssimpMesh()
