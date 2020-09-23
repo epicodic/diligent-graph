@@ -128,8 +128,8 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
         GLX_DEPTH_SIZE, 24,
         GLX_STENCIL_SIZE, 8,
         GLX_DOUBLEBUFFER, True,
-        //GLX_SAMPLE_BUFFERS  , 1,
-        //GLX_SAMPLES         , 4,
+        GLX_SAMPLE_BUFFERS, options.multi_sampling > 0 ? 1 : 0,
+        GLX_SAMPLES       , options.multi_sampling,
         None
     };
 
@@ -230,6 +230,7 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
 
     if(!glXMakeCurrent(display, _window, ctx))
         DG_THROW("glxMakeCurrent failed!");
+
 
     Diligent::SwapChainDesc SCDesc;
     SCDesc.Usage |= SWAP_CHAIN_USAGE_COPY_SOURCE;

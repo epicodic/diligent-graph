@@ -52,6 +52,7 @@ struct RenderWindowCreationOptions
 {
 	int posx = 0, posy = 0;
 	int width = 1024, height = 768;
+	int multi_sampling = 0;
 };
 
 class RenderWindow
