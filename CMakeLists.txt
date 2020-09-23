@@ -21,6 +21,8 @@ add_library(diligent-graph SHARED
   src/core/frustum.cpp
   src/core/type_id.cpp
   
+  src/geometry/sphere_geometry.cpp
+
   src/internal/pso_manager.cpp
   
   src/input/keys.cpp
@@ -40,7 +42,6 @@ add_library(diligent-graph SHARED
   src/objects/geometry_object.cpp  
   src/objects/gltf_mesh.cpp
   src/objects/manual_object.cpp
-  src/objects/sphere_object.cpp
 
   src/platform/render_window.cpp
     
