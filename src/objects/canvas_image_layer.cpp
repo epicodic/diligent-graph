@@ -1,5 +1,7 @@
 #include <dg/objects/canvas_image_layer.hpp>
 
+#include <dg/material/material.hpp>
+
 namespace dg {
 
 CanvasImageLayer::CanvasImageLayer(CanvasObject* parent_object) : CanvasLayer(parent_object)
@@ -48,6 +50,7 @@ void CanvasImageLayer::update(const dg::DynamicTexture::ImageData& data)
 		_manualObject = dg::ManualObject::make_unique(getParentObject()->getSceneManager());
 		_material = dg::UnlitMaterial::make(getParentObject()->getSceneManager()->device());
 		_material->texture = _texture.getTexture();
+		_material->cull_mode = dg::material::RasterizerParams::CullMode::None;
 		_material->initialize(getParentObject()->getSceneManager()->device()); // TODO: this should be done automatically
 
 		float m_focalLength = 858.5f;
@@ -124,6 +127,7 @@ void CanvasImageLayer::update(const dg::DynamicTexture::ImageData& data)
 		blend_desc.DestBlendAlpha = BLEND_FACTOR_ONE;
 		blend_desc.BlendOpAlpha   = BLEND_OPERATION_ADD;
 		_material_border->setBlendDesc(blend_desc);
+		_material_border->cull_mode = dg::material::RasterizerParams::CullMode::None;
 
 
 
