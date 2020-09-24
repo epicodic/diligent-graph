@@ -14,17 +14,27 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       
-    #- name: Install dependencies
-      #run: sudo apt install mesa-common-dev libgl1-mesa-dev libeigen3-dev
-     
-#    - name: Create download folder
-#      run: cmake -E make_directory ${{runner.workspace}}/downloads
-    
+    - name: Install dependencies
+      run: sudo apt install mesa-common-dev libgl1-mesa-dev libeigen3-dev
+        
     - name: Download diligent-engine debian
       uses: wei/wget@v1
       with:
         args: https://epicodic.github.io/releases/diligent-engine/diligent-engine-latest-bionic.deb
         
-    - name: Install dependencies
-      run: sudo apt install ./diligent-engine-latest-bionic.deb
+    - name: Install downloaded debian packages
+      run: sudo apt install ./*.deb
+    
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+      
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
      
