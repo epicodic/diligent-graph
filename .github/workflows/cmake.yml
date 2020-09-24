@@ -28,6 +28,10 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init --recursive
       
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+      
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
