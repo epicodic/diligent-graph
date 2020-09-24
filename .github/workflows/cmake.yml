@@ -17,13 +17,14 @@ jobs:
     #- name: Install dependencies
       #run: sudo apt install mesa-common-dev libgl1-mesa-dev libeigen3-dev
      
-    - name: Create download folder
-      run: cmake -E make_directory ${{runner.workspace}}/downloads
+#    - name: Create download folder
+#      run: cmake -E make_directory ${{runner.workspace}}/downloads
     
     - name: Download diligent-engine debian
       uses: wei/wget@v1
-      working-directory: ${{runner.workspace}}/downloads
       with:
         args: https://epicodic.github.io/releases/diligent-engine/diligent-engine-latest-bionic.deb
-         
+        
+    - name: Install dependencies
+      run: sudo apt install ./diligent-engine-latest-bionic.deb
      
