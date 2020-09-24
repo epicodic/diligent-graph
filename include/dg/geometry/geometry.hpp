@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <dg/core/common.hpp>
 
 namespace dg {
