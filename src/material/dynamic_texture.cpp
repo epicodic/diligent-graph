@@ -14,12 +14,48 @@ void tex_convert(std::uint32_t  width, std::uint32_t  height, const void* src_da
 {
     switch(format)
     {
+        case DynamicTexture::GREY8:
+        {
+			const std::uint8_t* src  = (const std::uint8_t*)src_data;
+			std::uint8_t* dest = (std::uint8_t*)dest_data;
+			for(int v=0; v<height; ++v, src+=src_stride, dest+=dest_stride)
+			for(int u=0; u<width;  ++u)
+			{
+				unsigned int val = src[u];
+				dest[u*4+0] = val;
+				dest[u*4+1] = val;
+				dest[u*4+2] = val;
+				dest[u*4+3] = 255;
+			}
+			break;
+		}
+        case DynamicTexture::GREY16:
+        {
+			const std::uint16_t* src  = (const std::uint16_t*)src_data;
+			std::uint8_t* dest = (std::uint8_t*)dest_data;
+			for(int v=0; v<height; ++v, src+=src_stride/2, dest+=dest_stride)
+			for(int u=0; u<width;  ++u)
+			{
+				unsigned int val = src[u] / 16;
+				dest[u*4+0] = val;
+				dest[u*4+1] = val;
+				dest[u*4+2] = val;
+				dest[u*4+3] = 255;
+			}
+			break;
+		}
         case DynamicTexture::RGB8:
         {
             const std::uint8_t* src  = (const std::uint8_t*)src_data;
             std::uint8_t* dest = (std::uint8_t*)dest_data;
             for(int v=0; v<height; ++v, src+=src_stride, dest+=dest_stride)
-            	memcpy(dest, src, width);
+			for(int u=0; u<width;  ++u)
+            {
+                dest[u*4+0] = src[u*3+0];
+                dest[u*4+1] = src[u*3+1];
+                dest[u*4+2] = src[u*3+2];
+                dest[u*4+3] = 255;
+            }
             break;
         }
         case DynamicTexture::RGBA8:
@@ -36,22 +72,6 @@ void tex_convert(std::uint32_t  width, std::uint32_t  height, const void* src_da
             }
             break;
         }
-        case DynamicTexture::MONO16:
-        {
-			const std::uint16_t* src  = (const std::uint16_t*)src_data;
-			std::uint8_t* dest = (std::uint8_t*)dest_data;
-			for(int v=0; v<height; ++v, src+=src_stride/2, dest+=dest_stride)
-			for(int u=0; u<width;  ++u)
-			{
-				unsigned int val = src[u] / 16;
-				dest[u*4+0] = val;
-				dest[u*4+1] = val;
-				dest[u*4+2] = val;
-				dest[u*4+3] = 255;
-			}
-			break;
-		}
-
         default:
             std::cout << "Unsupported format: " << format << std::endl;
             break;

@@ -14,18 +14,19 @@ class DynamicTexture
 public:
 	enum DataFormat
 	{
-		MONO16,
-	    RGB8,
+		GREY8,
+		GREY16,
+		RGB8,
 		RGBA8,
 	};
 
 	struct ImageData
 	{
-		 const void* data;
-		 std::uint32_t stride;
-		 std::uint32_t width;
-		 std::uint32_t height;
-		 DataFormat format;
+		const void* data;
+		std::uint32_t stride;
+		std::uint32_t width;
+		std::uint32_t height;
+		DataFormat format;
 	};
 
 	DynamicTexture() = default;
