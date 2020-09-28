@@ -22,13 +22,13 @@ public:
 
 	virtual Eigen::Vector2f getSize() const override { return _size; }
 	void setSize(const Eigen::Vector2f& size) { _size = size; }
+    
+    virtual void clear() override;
 
 	virtual bool isBackground() const override { return _is_background; }
 	void setIsBackground(bool is_background) { _is_background = is_background; }
 
 public:
-
-	void clear();
 
     void addLine(const Eigen::Vector2f& p1, const Eigen::Vector2f& p2, dg::Color color, float thickness = 1.0f);
     /// a: upper-left, b: lower-right (== upper-left + size), rounding_corners_flags: 4 bits corresponding to which corner to round

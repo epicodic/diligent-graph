@@ -24,11 +24,12 @@ public:
 
 	virtual bool spinOnce() override;
 
-	virtual void setWindowTitle(const std::string& title);
-	virtual void showFullscreen(bool fullscreen);
-	virtual bool isFullscreen() const;
+	virtual void setWindowTitle(const std::string& title) override;
+	virtual void showFullscreen(bool fullscreen) override;
+	virtual bool isFullscreen() const override;
 
-	virtual void setCursor(Cursor cursor);
+	virtual void setCursor(Cursor cursor) override;
+	virtual void setWindowIcon(const Icon& icon) override;
 
 protected:
 
@@ -42,6 +43,9 @@ protected:
 		WM_DELETE_WINDOW,
 		_NET_WM_STATE,
         _NET_WM_STATE_FULLSCREEN,
+		_NET_WM_ICON,
+
+		CARDINAL,
 
 		NumAtoms
 	};

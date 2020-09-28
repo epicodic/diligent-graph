@@ -12,7 +12,10 @@ static const char *xcb_atomnames[] =
 	"WM_PROTOCOLS",
 	"WM_DELETE_WINDOW",
 	"_NET_WM_STATE",
-	"_NET_WM_STATE_FULLSCREEN"
+	"_NET_WM_STATE_FULLSCREEN",
+	"_NET_WM_ICON",
+
+	"CARDINAL"
 };
 
 static MouseEvent::Buttons translateMouseButton(int s)
@@ -134,6 +137,12 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
                         propertyCount,
                         properties);
 
+	if(options.icon.rgba_pixmap)
+		setWindowIcon(options.icon);
+
+	if(!options.window_title.empty())
+		setWindowTitle(options.window_title);
+
 
 	// on some systems the position given in xcb_create_window is not respected, hence, move the window here explicitly
 	const static int coords[] = { options.posx, options.posy };
@@ -205,6 +214,47 @@ void XCBRenderWindow::setCursor(Cursor cursor)
     xcb_flush(_connection);
 
     _current_cursor = cursor;
+}
+
+void XCBRenderWindow::setWindowIcon(const Icon& icon) 
+{
+	if(icon.rgba_pixmap != nullptr)
+	{
+		std::vector<std::uint32_t> icon_data;
+		icon_data.resize(icon.width*icon.height+2);
+
+		std::cout << "ICON " << icon.width << std::endl;
+
+		icon_data[0] = icon.width;
+		icon_data[1] = icon.height;
+
+		for(int i=0; i<icon.width*icon.height; ++i)
+		{
+			int r = (icon.rgba_pixmap[i] >>  0) & 0xFF;
+			int g = (icon.rgba_pixmap[i] >>  8) & 0xFF;
+			int b = (icon.rgba_pixmap[i] >> 16) & 0xFF;
+			int a = (icon.rgba_pixmap[i] >> 24) & 0xFF;
+			icon_data[i+2] = (b<<0) | (g<<8) | (r<<16) | (a<<24);
+		}
+
+
+		xcb_change_property(_connection,
+			XCB_PROP_MODE_REPLACE,
+			_window,
+			atom(_NET_WM_ICON),
+			atom(CARDINAL),
+			32,
+			icon_data.size(),
+			(unsigned char *) icon_data.data());
+	}
+	else // remove any custom icon
+	{
+		xcb_delete_property(_connection,
+			_window,
+			atom(_NET_WM_ICON));
+	}
+
+
 }
 
 bool XCBRenderWindow::spinOnce()

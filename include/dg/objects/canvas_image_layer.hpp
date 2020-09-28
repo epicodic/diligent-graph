@@ -14,14 +14,17 @@ class CanvasImageLayer : public CanvasLayer
 public:
 	CanvasImageLayer(CanvasObject* parent_object);
 
+    void setScale(float scale);
+    float getScale() const;
+	void update(const dg::DynamicTexture::ImageData& data);
+
 	virtual void render() override;
 	virtual void setOpacity(float opacity) override;
 	virtual Eigen::Vector2f getSize() const override { return _size; }
 
-	void update(const dg::DynamicTexture::ImageData& data);
-
-
 private:
+
+    float _scale = 1.0f;
 
     dg::ManualObject::UniquePtr _manualObject;
     dg::UnlitMaterial::Ptr _material;
@@ -29,6 +32,9 @@ private:
     dg::DynamicTexture _texture;
 
     Eigen::Vector2f _size = Eigen::Vector2f(0.0f,0.0f);
+
 };
+
+
 
 }

@@ -48,11 +48,25 @@ public:
 
 };
 
+
+struct Icon
+{
+	Icon() = default;
+	Icon(int width, int height, const std::uint32_t* rgba_pixmap) 
+		: width(width), height(height), rgba_pixmap(rgba_pixmap) {}
+
+	int width = 0;
+	int height = 0; 
+	const std::uint32_t* rgba_pixmap = nullptr;
+};
 struct RenderWindowCreationOptions
 {
 	int posx = 0, posy = 0;
 	int width = 1024, height = 768;
 	int multi_sampling = 0;
+	
+	std::string window_title;
+	Icon icon;
 };
 
 class RenderWindow
@@ -92,6 +106,7 @@ public:
 	virtual bool isFullscreen() const = 0;
 
 	virtual void setCursor(Cursor cursor) = 0;
+	virtual void setWindowIcon(const Icon& icon) = 0;
 
 public:
 

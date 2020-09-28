@@ -166,7 +166,8 @@ void CanvasObject::render(SceneManager* manager)
 	}
 
 	for(const auto& p : d->layers)
-		p->render();
+		if(p->isVisible())
+			p->render();
 
 
 

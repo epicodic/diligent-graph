@@ -8,6 +8,16 @@ CanvasImageLayer::CanvasImageLayer(CanvasObject* parent_object) : CanvasLayer(pa
 {
 }
 
+void CanvasImageLayer::setScale(float scale) 
+{
+    _scale = scale;
+	_manualObject.reset();
+}
+
+float CanvasImageLayer::getScale() const
+{
+    return _scale;
+}
 
 int borderEdge(dg::ManualObject* obj, float sx, float sy, float ox, float oy, int voff, float d, float w, float l, const Color& c0, const Color& c1)
 {
@@ -53,15 +63,11 @@ void CanvasImageLayer::update(const dg::DynamicTexture::ImageData& data)
 		_material->cull_mode = dg::material::RasterizerParams::CullMode::None;
 		_material->initialize(getParentObject()->getSceneManager()->device()); // TODO: this should be done automatically
 
-		float m_focalLength = 858.5f;
-		float width = data.width;
-		float height = data.height;
+		float width = data.width * _scale;
+		float height = data.height * _scale;
 		_size << width, height;
 
 		float m_farPlane = 1.0;
-
-	    //float dx = width/2.0  / m_focalLength * m_farPlane;
-	    //float dy = height/2.0 / m_focalLength * m_farPlane;
 
 	    _manualObject->clear();
 
@@ -128,9 +134,6 @@ void CanvasImageLayer::update(const dg::DynamicTexture::ImageData& data)
 		blend_desc.BlendOpAlpha   = BLEND_OPERATION_ADD;
 		_material_border->setBlendDesc(blend_desc);
 		_material_border->cull_mode = dg::material::RasterizerParams::CullMode::None;
-
-
-
 
 		float _border_spacing = 20.0f;
 		float _width = 15.0f;

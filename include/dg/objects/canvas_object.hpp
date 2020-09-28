@@ -35,7 +35,12 @@ public:
 	virtual void render() = 0;
 	virtual void setOpacity(float opacity) {}
 
+	virtual void setVisible(bool visible) { _visible = visible; }
+	virtual bool isVisible() const { return _visible; } 
+
 	virtual Eigen::Vector2f getSize() const { return Eigen::Vector2f(0.0f,0.0f); }
+
+	virtual void clear() {}
 
 protected:
 	friend class CanvasObject;
@@ -46,6 +51,7 @@ protected:
 private:
 
 	CanvasObject* _parent_object = nullptr;
+	bool _visible = true;
 
 };
 
@@ -92,7 +98,7 @@ public:
 	ImGuiContext* getImGuiContext();
 	ImDrawList* createDrawList();
 
-	void renderDrawList(ImDrawList* draw_list, float opacity = 0.0f);
+	void renderDrawList(ImDrawList* draw_list, float opacity = 1.0f);
 
 	const SceneManager::Matrices& getRenderMatrices();
 
