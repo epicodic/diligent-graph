@@ -322,6 +322,16 @@ void CanvasDrawingLayer::addBezierCurve(const Eigen::Vector2f &p1,
 	_draw_list->AddBezierCurve(to_imgui(p1), to_imgui(p2), to_imgui(p3), to_imgui(p4), to_imgui(color), thickness, num_segments);
 }
 
+void CanvasDrawingLayer::addImage(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, const Eigen::Vector2f& uv_min, const Eigen::Vector2f& uv_max, dg::Color color)
+{
+	_draw_list->AddImage(user_texture_id, to_imgui(p_min), to_imgui(p_max), to_imgui(uv_min), to_imgui(uv_max), to_imgui(color));
+}
+
+void CanvasDrawingLayer::addImage(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, dg::Color color)
+{
+	addImage(user_texture_id, p_min, p_max, Eigen::Vector2f(0, 0), Eigen::Vector2f(1, 1), color);
+}
+
 void CanvasDrawingLayer::pathClear()
 {
 	_draw_list->PathClear();

@@ -79,6 +79,7 @@ struct ImGuiImplDg::Pimpl
     RefCntAutoPtr<IPipelineState>         pso;
     RefCntAutoPtr<ITextureView>           fontSRV;
     RefCntAutoPtr<IShaderResourceBinding> srb;
+    IShaderResourceVariable*              textureVar = nullptr;
     std::uint16_t                         backBufferFmt = 0;
     std::uint16_t                         depthBufferFmt = 0;
     std::uint32_t                         vertexBufferSize = 0;
@@ -220,7 +221,7 @@ void ImGuiImplDg::createDeviceObjects()
 
     ShaderResourceVariableDesc Variables[] =
         {
-            {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE} //
+            {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC} //
         };
     PSODesc.ResourceLayout.Variables    = Variables;
     PSODesc.ResourceLayout.NumVariables = 1;
@@ -277,8 +278,8 @@ void ImGuiImplDg::updateFontsTexture()
 
     d->srb.Release();
     d->pso->CreateShaderResourceBinding(&d->srb, true);
-    d->srb->GetVariableByName(SHADER_TYPE_PIXEL, "Texture")->Set(d->fontSRV);
-
+    d->textureVar = d->srb->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
+    VERIFY_EXPR(d->textureVar != nullptr);
     // Store our identifier
     io.Fonts->TexID = (ImTextureID)d->fontSRV;
 }
@@ -399,6 +400,7 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
     // (Because we merged all buffers into a single one, we maintain our own offset into them)
     int global_idx_offset = 0;
     int global_vtx_offset = 0;
+    ITextureView* last_texture_view = nullptr;
 
     ImVec2 clip_off = pDrawData->DisplayPos;
     for (int n = 0; n < pDrawData->CmdListsCount; n++)
@@ -429,14 +431,14 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
                 //ctx->SetScissorRects(1, &r, DisplayWidth, DisplayHeight); // TODO:
 
                 // Bind texture, Draw
-                ITextureView* texture_srv = reinterpret_cast<ITextureView*>(pcmd->TextureId);
-                VERIFY_EXPR(texture_srv == d->fontSRV);
-
-                /*
-                auto var = d->srb->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
-                var->Set(texture_srv);
-                ctx->CommitShaderResources(d->srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-                */
+                auto* texture_view = reinterpret_cast<ITextureView*>(pcmd->TextureId);
+                VERIFY_EXPR(texture_view);
+                if (texture_view != last_texture_view)
+                {
+                    last_texture_view = texture_view;
+                    d->textureVar->Set(texture_view);
+                    ctx->CommitShaderResources(d->srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+                }
 
                 DrawIndexedAttribs DrawAttrs(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? VT_UINT16 : VT_UINT32, DRAW_FLAG_VERIFY_STATES);
                 DrawAttrs.FirstIndexLocation = pcmd->IdxOffset + global_idx_offset;

@@ -31,7 +31,7 @@ public:
 
 	DynamicTexture() = default;
 
-	void update(IRenderDevice* device, IDeviceContext* context, const ImageData& data);
+	bool update(IRenderDevice* device, IDeviceContext* context, const ImageData& data);
 
 	/// Returns the underlying texture object. NOTE: only valid after first call to update() !
 	RefCntAutoPtr<ITexture> getTexture() { return _texture; }

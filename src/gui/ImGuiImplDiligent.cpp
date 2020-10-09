@@ -88,6 +88,8 @@ private:
     RefCntAutoPtr<IPipelineState>         m_pPSO;
     RefCntAutoPtr<ITextureView>           m_pFontSRV;
     RefCntAutoPtr<IShaderResourceBinding> m_pSRB;
+    IShaderResourceVariable*              m_pTextureVar = nullptr;
+
     const TEXTURE_FORMAT                  m_BackBufferFmt;
     const TEXTURE_FORMAT                  m_DepthBufferFmt;
     Uint32                                m_VertexBufferSize = 0;
@@ -219,7 +221,7 @@ void ImGuiImplDiligent_Internal::CreateDeviceObjects()
 
     ShaderResourceVariableDesc Variables[] =
         {
-            {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE} //
+            {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC} //
         };
     PSODesc.ResourceLayout.Variables    = Variables;
     PSODesc.ResourceLayout.NumVariables = _countof(Variables);
@@ -276,7 +278,8 @@ void ImGuiImplDiligent_Internal::CreateFontsTexture()
 
     m_pSRB.Release();
     m_pPSO->CreateShaderResourceBinding(&m_pSRB, true);
-    m_pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "Texture")->Set(m_pFontSRV);
+    m_pTextureVar = m_pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
+    VERIFY_EXPR(m_pTextureVar != nullptr);
 
     // Store our identifier
     io.Fonts->TexID = (ImTextureID)m_pFontSRV;
@@ -336,7 +339,6 @@ void ImGuiImplDiligent_Internal::RenderDrawData(IDeviceContext* pCtx, ImDrawData
         }
     }
 
-
     // Setup orthographic projection matrix into our constant buffer
     // Our visible imgui space lies from pDrawData->DisplayPos (top left) to pDrawData->DisplayPos+data_data->DisplaySize (bottom right).
     // DisplayPos is (0,0) for single viewport apps.
@@ -388,6 +390,7 @@ void ImGuiImplDiligent_Internal::RenderDrawData(IDeviceContext* pCtx, ImDrawData
     // (Because we merged all buffers into a single one, we maintain our own offset into them)
     int global_idx_offset = 0;
     int global_vtx_offset = 0;
+    ITextureView* last_texture_view = nullptr;
 
     ImVec2 clip_off = pDrawData->DisplayPos;
     for (int n = 0; n < pDrawData->CmdListsCount; n++)
@@ -418,10 +421,14 @@ void ImGuiImplDiligent_Internal::RenderDrawData(IDeviceContext* pCtx, ImDrawData
                 pCtx->SetScissorRects(1, &r, DisplayWidth, DisplayHeight);
 
                 // Bind texture, Draw
-                auto* texture_srv = reinterpret_cast<ITextureView*>(pcmd->TextureId);
-                VERIFY_EXPR(texture_srv == m_pFontSRV);
-                (void)texture_srv;
-                //ctx->PSSetShaderResources(0, 1, &texture_srv);
+                auto* texture_view = reinterpret_cast<ITextureView*>(pcmd->TextureId);
+                VERIFY_EXPR(texture_view);
+                if (texture_view != last_texture_view)
+                {
+                    last_texture_view = texture_view;
+                    m_pTextureVar->Set(texture_view);
+                    pCtx->CommitShaderResources(m_pSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+                }
                 DrawIndexedAttribs DrawAttrs(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? VT_UINT16 : VT_UINT32, DRAW_FLAG_VERIFY_STATES);
                 DrawAttrs.FirstIndexLocation = pcmd->IdxOffset + global_idx_offset;
                 DrawAttrs.BaseVertex         = pcmd->VtxOffset + global_vtx_offset;

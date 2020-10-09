@@ -52,7 +52,8 @@ public:
     void addPolyFilled(const ImVector<ImVec2>& poly, ImU32 col);
     void addBezierCurve(const Eigen::Vector2f& p1, const Eigen::Vector2f& p2, const Eigen::Vector2f& p3, const Eigen::Vector2f& p4, dg::Color color, float thickness, int num_segments = 0);
 
-    //void addImage(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, const Eigen::Vector2f& uv_min = Eigen::Vector2f(0, 0), const Eigen::Vector2f& uv_max = Eigen::Vector2f(1, 1), dg::Color color = IM_COL32_WHITE);
+    void addImage(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, const Eigen::Vector2f& uv_min = Eigen::Vector2f(0, 0), const Eigen::Vector2f& uv_max = Eigen::Vector2f(1, 1), dg::Color color = dg::colors::White);
+    void addImage(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, dg::Color color);
     //void addImageQuad(ImTextureID user_texture_id, const Eigen::Vector2f& p1, const Eigen::Vector2f& p2, const Eigen::Vector2f& p3, const Eigen::Vector2f& p4, const Eigen::Vector2f& uv1 = Eigen::Vector2f(0, 0), const Eigen::Vector2f& uv2 = Eigen::Vector2f(1, 0), const Eigen::Vector2f& uv3 = Eigen::Vector2f(1, 1), const Eigen::Vector2f& uv4 = Eigen::Vector2f(0, 1), dg::Color color = IM_COL32_WHITE);
     //void addImageRounded(ImTextureID user_texture_id, const Eigen::Vector2f& p_min, const Eigen::Vector2f& p_max, const Eigen::Vector2f& uv_min, const Eigen::Vector2f& uv_max, dg::Color color, float rounding, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
 

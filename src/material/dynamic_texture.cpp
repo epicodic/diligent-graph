@@ -79,7 +79,7 @@ void tex_convert(std::uint32_t  width, std::uint32_t  height, const void* src_da
 }
 
 
-void DynamicTexture::update(IRenderDevice *device, IDeviceContext *context, const ImageData& data)
+bool DynamicTexture::update(IRenderDevice *device, IDeviceContext *context, const ImageData& data)
 {
 	const TEXTURE_FORMAT tex_format = TEX_FORMAT_RGBA8_UNORM_SRGB;
 	const int tex_bytes_per_pixel = 4; // TEX_FORMAT_RGBA8_UNORM_SRGB has 4 bytes per pixel
@@ -117,7 +117,8 @@ void DynamicTexture::update(IRenderDevice *device, IDeviceContext *context, cons
 	{
 	    const TextureDesc& desc = _texture->GetDesc();
 
-	    // TODO: check if sizes match
+		if(desc.Width != data.width || desc.Height != data.height)
+			return false;
 
 	    _buffer.resize(data.width*data.height*tex_bytes_per_pixel);
 	    tex_convert(data.width,data.height,data.data,data.stride, _buffer.data(),data.width*tex_bytes_per_pixel, data.format);
