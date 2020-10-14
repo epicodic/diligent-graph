@@ -158,21 +158,33 @@ install(FILES cmake/diligent-graph-config.cmake DESTINATION share/cmake)
 export(TARGETS diligent-graph FILE diligent-graphConfig.cmake)
 export(PACKAGE diligent-graph)
 
+###############################################################################
 # Packaging
+###############################################################################
+include(CMakePackageConfigHelpers)
 set(CPACK_PACKAGE_NAME "diligent-graph")
 set(CPACK_PACKAGE_DESCRIPTION "Scene graph and material system for Diligent Engine")
 set(CPACK_PACKAGE_CONTACT "epicodic@web.de")
 set(CPACK_PACKAGE_VERSION_MAJOR 1)
-set(CPACK_PACKAGE_VERSION_MINOR 1)
+set(CPACK_PACKAGE_VERSION_MINOR 0)
+set(CPACK_PACKAGE_VERSION_PATCH_NO_CODENAME "$ENV{GITHUB_RUN_NUMBER}")
 
 set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${CPACK_PACKAGE_NAME}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
-set(CPACK_PACKAGE_VERSION_PATCH "$ENV{GITHUB_RUN_NUMBER}-$ENV{DISTRO_CODENAME}")
+set(CPACK_PACKAGE_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH_NO_CODENAME}-$ENV{DISTRO_CODENAME}")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "diligent-engine")
 set(CPACK_DEBIAN_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}.deb")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+set(PACKAGE_VERSION_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_NAME}-config-version.cmake")
+write_basic_package_version_file(
+  ${PACKAGE_VERSION_CONFIG_FILE}
+  VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH_NO_CODENAME}>"
+  COMPATIBILITY SameMajorVersion
+)
+install(FILES ${PACKAGE_VERSION_CONFIG_FILE} DESTINATION share/cmake)
 
 include(CPack)
