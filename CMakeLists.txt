@@ -22,6 +22,7 @@ add_library(diligent-graph SHARED
   src/core/type_id.cpp
   
   src/geometry/sphere_geometry.cpp
+  src/geometry/box_geometry.cpp
 
   src/internal/pso_manager.cpp
   
@@ -153,6 +154,9 @@ install(FILES
 install(EXPORT diligent-graph DESTINATION share/cmake)
 install(FILES cmake/diligent-graph-config.cmake DESTINATION share/cmake)
 
+# for exporting to local package registry during development
+export(TARGETS diligent-graph FILE diligent-graphConfig.cmake)
+export(PACKAGE diligent-graph)
 
 # Packaging
 set(CPACK_PACKAGE_NAME "diligent-graph")

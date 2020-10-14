@@ -17,8 +17,8 @@ public:
 		float phiStart, phiEnd;
 		float thetaStart, thetaEnd;
 
-		Params(float radius = 1.0f,
-			   unsigned widthSegments = 48, unsigned heightSegments = 32,
+		explicit Params(float radius = 1.0f,
+			   int widthSegments = 48, int heightSegments = 32,
 			   float phiStart = 0.0f, float phiEnd = 2.0f*M_PI,
 			   float thetaStart = 0.0f, float thetaEnd = M_PI) :
 			radius(radius),
@@ -29,7 +29,7 @@ public:
 		{}
 	};
 
-	SphereGeometry(const Params& params = Params(), bool generate_normals = true, bool generate_uvs = true);
+	explicit SphereGeometry(const Params& params = Params(), bool generate_normals = true, bool generate_uvs = true);
 
 };
     

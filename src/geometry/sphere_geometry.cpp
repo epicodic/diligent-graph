@@ -14,8 +14,8 @@ SphereGeometry::SphereGeometry(const Params& p, bool generate_normals, bool gene
 	if(generate_uvs)
 		_uvs.resize(num);
 
-	float phiLength = p.phiEnd - p.phiStart;
-	float thetaLength = p.thetaEnd - p.thetaStart;
+	float phi_length = p.phiEnd - p.phiStart;
+	float theta_length = p.thetaEnd - p.thetaStart;
 
 	int idx = 0;
 	for (unsigned iy = 0; iy <= p.heightSegments; iy++)
@@ -27,9 +27,9 @@ SphereGeometry::SphereGeometry(const Params& p, bool generate_normals, bool gene
 		{
 
 			float u = (float)ix / p.widthSegments;
-			float x = - p.radius * std::cos( p.phiStart   + u * phiLength ) * std::sin( p.thetaStart + v * thetaLength );
-			float y =   p.radius * std::sin( p.phiStart   + u * phiLength ) * std::sin( p.thetaStart + v * thetaLength );
-			float z =   p.radius * std::cos( p.thetaStart + v * thetaLength );
+			float x = - p.radius * std::cos( p.phiStart   + u * phi_length ) * std::sin( p.thetaStart + v * theta_length );
+			float y =   p.radius * std::sin( p.phiStart   + u * phi_length ) * std::sin( p.thetaStart + v * theta_length );
+			float z =   p.radius * std::cos( p.thetaStart + v * theta_length );
 
 			_positions[idx] = {x, y, z};
 
