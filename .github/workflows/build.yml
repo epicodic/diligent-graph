@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Install dependencies
-      run: sudo apt install mesa-common-dev libgl1-mesa-dev libeigen3-dev libassimp-dev libxkbcommon-dev libxkbcommon-x11-dev
+      run: sudo apt install mesa-common-dev libgl1-mesa-dev libeigen3-dev libassimp-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-xcb-dev
         
     - name: Download diligent-engine debian
       uses: wei/wget@v1
