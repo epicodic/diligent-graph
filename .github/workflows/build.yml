@@ -23,7 +23,7 @@ jobs:
         args: https://epicodic.github.io/releases/diligent-engine/diligent-engine-latest-focal.deb
         
     - name: Install downloaded debian packages
-      run: sudo apt install ./*.deb
+      run: sudo dpkg -i ./*.deb
     
     - name: Checkout submodules
       run: git submodule update --init --recursive
@@ -70,7 +70,7 @@ jobs:
         args: https://epicodic.github.io/releases/diligent-engine/diligent-engine-latest-bionic.deb
         
     - name: Install downloaded debian packages
-      run: sudo apt install ./*.deb
+      run: sudo dpkg -i ./*.deb
     
     - name: Checkout submodules
       run: git submodule update --init --recursive
@@ -119,7 +119,7 @@ jobs:
         args: https://epicodic.github.io/releases/diligent-engine/diligent-engine-latest-xenial.deb
         
     - name: Install downloaded debian packages
-      run: sudo apt install ./*.deb
+      run: sudo dpkg -i ./*.deb
     
     - name: Checkout submodules
       run: git submodule update --init --recursive
