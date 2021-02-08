@@ -32,7 +32,7 @@ struct TypeIdHelper : public TypeIdHelperBase
  * Useful for checking if two types are identical, storing type information, etc.
  */
 template<typename T>
-TypeId type_id()
+TypeId type_id() // NOLINT
 {
 	// make type id for unqualified type
 	return detail::TypeIdHelper< typename std::remove_cv<T>::type >::id();

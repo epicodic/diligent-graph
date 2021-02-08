@@ -22,14 +22,14 @@ inline std::vector<std::string> split(std::istream& stream, char delimiter)
 }
 
 template <std::size_t... Is>
-struct indices {};
+struct indices {}; // NOLINT
 
 template <std::size_t N, std::size_t... Is>
-struct build_indices
+struct build_indices // NOLINT
   : build_indices<N-1, N-1, Is...> {};
 
 template <std::size_t... Is>
-struct build_indices<0, Is...> : indices<Is...> {};
+struct build_indices<0, Is...> : indices<Is...> {}; // NOLINT
 
 
 
@@ -37,7 +37,7 @@ struct build_indices<0, Is...> : indices<Is...> {};
 namespace detail
 {
     template <typename F>
-    struct function_traits : public function_traits<decltype(&F::operator())> {};
+    struct function_traits : public function_traits<decltype(&F::operator())> {}; // NOLINT
 
     template <typename R, typename C, typename... Args>
     struct function_traits<R (C::*)(Args...) const>
@@ -88,14 +88,14 @@ struct MethodInvoker : public IMethodInvoker
 	std::function<R(Args...)> fn;
 
 	template<std::size_t... Is>
-	void call_(const Parameters& params, indices<Is...>)
+	void call_(const Parameters& params, indices<Is...>) // NOLINT
 	{
 		fn(parse<Args>(params[Is])...);
 	}
 
 	virtual std::string call(const Parameters& params)
 	{
-		call_(params,build_indices<sizeof...(Args)>{});
+		call_(params,build_indices<sizeof...(Args)>{}); // NOLINT
 		return std::string(); // TODO: return value
 	}
 };
@@ -112,7 +112,7 @@ public:
 	{
 		MethodInvoker<R,Args...>* invoker = new MethodInvoker<R,Args...>();
 		invoker->fn = [This,fn](Args... args)->R { return (This->*fn)(args...); };
-		_methods[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker);
+		_methods[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker); 
 
 	}
 

@@ -8,7 +8,7 @@ namespace dg {
 using namespace Diligent;
 
 template <typename T>
-inline void matrix_to_float3x3(const Eigen::Matrix<T,3,3>& s, float4x4& d)
+inline void matrix_to_float3x3(const Eigen::Matrix<T,3,3>& s, float4x4& d) // NOLINT
 {
 	d._11 = s(0,0);
 	d._12 = s(0,1);
@@ -24,7 +24,7 @@ inline void matrix_to_float3x3(const Eigen::Matrix<T,3,3>& s, float4x4& d)
 }
 
 template <typename T>
-inline void matrix_to_float3x3t(const Eigen::Matrix<T,3,3>& s, float3x3& d)
+inline void matrix_to_float3x3t(const Eigen::Matrix<T,3,3>& s, float3x3& d) // NOLINT
 {
 	d._11 = s(0,0);
 	d._12 = s(1,0);
@@ -40,7 +40,7 @@ inline void matrix_to_float3x3t(const Eigen::Matrix<T,3,3>& s, float3x3& d)
 }
 
 template <typename T>
-inline void matrix_to_float4x4(const Eigen::Matrix<T,4,4>& s, float4x4& d)
+inline void matrix_to_float4x4(const Eigen::Matrix<T,4,4>& s, float4x4& d) // NOLINT
 {
 	d._11 = s(0,0);
 	d._12 = s(0,1);
@@ -64,7 +64,7 @@ inline void matrix_to_float4x4(const Eigen::Matrix<T,4,4>& s, float4x4& d)
 }
 
 template <typename T>
-inline void matrix_to_float4x4t(const Eigen::Matrix<T,4,4>& s, float4x4& d)
+inline void matrix_to_float4x4t(const Eigen::Matrix<T,4,4>& s, float4x4& d) // NOLINT
 {
 	d._11 = s(0,0);
 	d._12 = s(1,0);
@@ -88,7 +88,7 @@ inline void matrix_to_float4x4t(const Eigen::Matrix<T,4,4>& s, float4x4& d)
 }
 
 template <typename T>
-inline void vector_to_float3(const Eigen::Matrix<T,3,1>& s, float3& d)
+inline void vector_to_float3(const Eigen::Matrix<T,3,1>& s, float3& d) // NOLINT
 {
 	d.x = s(0);
 	d.y = s(1);
@@ -96,7 +96,7 @@ inline void vector_to_float3(const Eigen::Matrix<T,3,1>& s, float3& d)
 }
 
 template <typename T>
-inline void vector_to_float4(const Eigen::Matrix<T,4,1>& s, float4& d)
+inline void vector_to_float4(const Eigen::Matrix<T,4,1>& s, float4& d) // NOLINT
 {
 	d.x = s(0);
 	d.y = s(1);
