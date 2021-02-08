@@ -84,4 +84,30 @@ KeySequence keySequenceFromString(const std::string& s)
 }
 
 
+std::string keySequenceToString(const KeySequence& key_seq)
+{
+	std::string s;
+
+	for(const KeySequenceSimKeys& sim_keys : key_seq)
+	{
+		if(!s.empty())
+			s+=",";
+
+		// form string of all simultanously pressed keys (except last one)
+		for(int key : sim_keys.all_keys)
+		{
+			if(key == sim_keys.last_key)
+				continue;
+
+			s+=keyToName(key) + "+";
+		}
+
+		// add last key: 
+		s+=keyToName(sim_keys.last_key);
+	}
+
+	return s;
+}
+
+
 }

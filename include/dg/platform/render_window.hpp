@@ -72,7 +72,7 @@ struct RenderWindowCreationOptions
 class RenderWindow
 {
 public:
-	typedef RenderWindowCreationOptions CreationOptions;
+	using CreationOptions = RenderWindowCreationOptions;
 
 public:
 

@@ -82,10 +82,10 @@ namespace dg {
 
 SceneManager::SceneManager()
 {
-	_root = Node::make();
-	_default_camera_node = getRoot()->createChild();
-	_default_camera_node->attach(&_default_camera);
-	_camera = &_default_camera;
+	root_ = Node::make();
+	default_camera_node_ = getRoot()->createChild();
+	default_camera_node_->attach(&default_camera_);
+	camera_ = &default_camera_;
 }
 
 SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain) : SceneManager()
@@ -95,25 +95,25 @@ SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwap
 
 void SceneManager::setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain)
 {
-	_device = device;
-	_context = context;
-	_swapChain = swapChain;
+	device_ = device;
+	context_ = context;
+	swap_chain_ = swapChain;
 }
 
 
 void SceneManager::setEnvironmentMap(const std::string& filename)
 {
-	CreateTextureFromFile(filename.c_str(), TextureLoadInfo{"SceneManager Environment Map"}, device(), &_environment_map);
+	CreateTextureFromFile(filename.c_str(), TextureLoadInfo{"SceneManager Environment Map"}, device(), &environment_map_);
     StateTransitionDesc barriers [] =
     {
-        {_environment_map, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
+        {environment_map_, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
     };
     context()->TransitionResourceStates(_countof(barriers), barriers);
 }
 
 RefCntAutoPtr<ITexture> SceneManager::getEnvironmentMap() const
 {
-	return _environment_map;
+	return environment_map_;
 }
 
 void SceneManager::render()
@@ -122,23 +122,23 @@ void SceneManager::render()
 
 	getRoot()->updateTransforms();
 
-	_render_matrices.proj = _camera->getProjectionMatrix().cast<Real>();
+	render_matrices_.proj = camera_->getProjectionMatrix().cast<Real>();
 
-	Matrix4 _viewInv;
-	_viewInv = _camera->getNode()->getDerivedTransform();
-	_render_matrices.view = _viewInv.inverse();
+	Matrix4 viewInv_;
+	viewInv_ = camera_->getNode()->getDerivedTransform();
+	render_matrices_.view = viewInv_.inverse();
 
-	_render_matrices.viewProj = _render_matrices.proj*_render_matrices.view;
-	//_viewProjInv = _viewProj.inverse();
-	_render_matrices.cameraWorldPosition = _viewInv.block<3,1>(0,3);
+	render_matrices_.viewProj = render_matrices_.proj*render_matrices_.view;
+	//viewProjInv_ = viewProj_.inverse();
+	render_matrices_.cameraWorldPosition = viewInv_.block<3,1>(0,3);
 
 	collectRenderables(getRoot());
 
-	_lastPSOInRender = nullptr;
-	_lastMaterialInRender = nullptr;
+	last_pso_in_render_ = nullptr;
+	last_material_in_render_ = nullptr;
 
 	//std::cout << std::endl << "RENDER " << std::endl;
-	for(auto& p : _renderQueues)
+	for(auto& p : renderQueues_)
 	{
 	    RenderQueue& queue = p.second;
 	    //std::cout << "RenderQueue: " << queue.size() << std::endl;
@@ -148,18 +148,18 @@ void SceneManager::render()
             {
                 Renderable* r = reinterpret_cast<Renderable*>(obj);
                 Matrix4 world = r->getNode()->getDerivedTransform();
-                _render_matrices.worldViewProj = _render_matrices.viewProj * world;
-                _render_matrices.worldView = _render_matrices.view * world;
-                render(r, _render_matrices);
+                render_matrices_.worldViewProj = render_matrices_.viewProj * world;
+                render_matrices_.worldView = render_matrices_.view * world;
+                render(r, render_matrices_);
             }
 
             if(obj->typeId() == type_id<RawRenderable>())
             {
                 RawRenderable* r = reinterpret_cast<RawRenderable*>(obj);
                 Matrix4 world = r->getNode()->getDerivedTransform();
-                _render_matrices.worldViewProj = _render_matrices.viewProj * world;
-                _render_matrices.worldView = _render_matrices.view * world;
-                render(r, _render_matrices);
+                render_matrices_.worldViewProj = render_matrices_.viewProj * world;
+                render_matrices_.worldView = render_matrices_.view * world;
+                render(r, render_matrices_);
             }
         }
 	}
@@ -176,12 +176,12 @@ void SceneManager::collectRenderables(Node* node)
 	    {
             Renderable* r = obj->cast<Renderable>();
             if(r)
-                _renderQueues[r->_render_order].push_back(obj);
+                renderQueues_[r->_render_order].push_back(obj);
 	    }
         {
             RawRenderable* r = obj->cast<RawRenderable>();
             if(r)
-                _renderQueues[r->_render_order].push_back(obj);
+                renderQueues_[r->_render_order].push_back(obj);
         }
 
 	}
@@ -192,15 +192,15 @@ void SceneManager::collectRenderables(Node* node)
 
 void SceneManager::clearRenderQueues()
 {
-    for(auto &p : _renderQueues)
+    for(auto &p : renderQueues_)
         p.second.clear();
 }
 
 
 void SceneManager::render(Renderable* r, const Matrices& matrices)
 {
-	const Matrices* prev_render_matrices = _current_render_matrices;
-	_current_render_matrices = &matrices;
+	const Matrices* prevrender_matrices_ = current_render_matrices_;
+	current_render_matrices_ = &matrices;
 
 	if(r->_pso_needs_update)
 	{
@@ -222,7 +222,7 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
 		r->_material->setupPSODesc(desc);
 
 		std::size_t pso_hash = hash_value(desc);
-		IPipelineState* pso = _psoManager.getPSO(device(),desc);
+		IPipelineState* pso = psoManager_.getPSO(device(),desc);
 
 		//std::cout << "r=" << r << std::endl;
 		//std::cout << " order: " << r->_renderOrder << std::endl;
@@ -241,32 +241,32 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
 
 	{
 		auto constants = r->_material->_shader_program->mapConstant<dg::CommonConstantsVS>(context(), "CommonConstantsVS");
-		matrix_to_float4x4t(_current_render_matrices->worldViewProj, constants->g_worldViewProj);
-		matrix_to_float4x4t(_current_render_matrices->worldView, constants->g_worldView);
-		matrix_to_float4x4t(_current_render_matrices->view, constants->g_view);
+		matrix_to_float4x4t(current_render_matrices_->worldViewProj, constants->g_worldViewProj);
+		matrix_to_float4x4t(current_render_matrices_->worldView, constants->g_worldView);
+		matrix_to_float4x4t(current_render_matrices_->view, constants->g_view);
 		/// TODO
 		//context()->CommitShaderResources(r->_srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 	}
 
-	if(r->_material.get()!=_lastMaterialInRender)
+	if(r->_material.get()!=last_material_in_render_)
 	{
 		//std::cout << "prepareMaterial" << std::endl;
 		r->_material->prepareForRender(context());
-		_lastMaterialInRender = r->_material.get();
+		last_material_in_render_ = r->_material.get();
 	}
 
 	// Bind vertex and index buffers
     Uint32   offset   = 0;
-    IBuffer* pBuffs[] = {r->_vertexBuffer};
-    context()->SetVertexBuffers(0, 1, pBuffs, &offset, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
+    IBuffer* buffs[] = {r->_vertexBuffer};
+    context()->SetVertexBuffers(0, 1, buffs, &offset, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
     context()->SetIndexBuffer(r->_indexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
     // Set the pipeline state
-	if(r->_pso != _lastPSOInRender)
+	if(r->_pso != last_pso_in_render_)
     {
     	//std::cout << "PSO changed" << std::endl;
     	context()->SetPipelineState(r->_pso);
-    	_lastPSOInRender = r->_pso;
+    	last_pso_in_render_ = r->_pso;
     }
     context()->CommitShaderResources(r->_srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
@@ -276,18 +276,18 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
     attr.Flags = DRAW_FLAG_VERIFY_ALL;
     context()->DrawIndexed(attr);
 
-    _current_render_matrices = prev_render_matrices;
+    current_render_matrices_ = prevrender_matrices_;
 }
 
 void SceneManager::render(RawRenderable* r, const Matrices& matrices)
 {
-	const Matrices* prev_render_matrices = _current_render_matrices;
-	_current_render_matrices = &matrices;
+	const Matrices* prev_render_matrices = current_render_matrices_;
+	current_render_matrices_ = &matrices;
 	//_worldViewProj = _viewProj * world;
 	//_worldViewProjInv = _worldViewProj.inverse();
 
 	r->render(this);
-	_current_render_matrices = prev_render_matrices;
+	current_render_matrices_ = prev_render_matrices;
 }
 
 }

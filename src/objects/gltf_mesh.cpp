@@ -38,8 +38,8 @@ struct GLTFMesh::Pimpl
 	RefCntAutoPtr<ITextureView>           _env_map_srv;
 	RefCntAutoPtr<IBuffer>                _env_map_attribs_cb;
 
-
-	bool initialized = false;
+    bool initialized = false;
+    bool use_local_frame = true;
 
 	std::string filename;
 };
@@ -60,10 +60,7 @@ GLTFMesh::GLTFMesh()
 	d.reset(new Pimpl);
 }
 
-GLTFMesh::~GLTFMesh()
-{
-
-}
+GLTFMesh::~GLTFMesh() = default;
 
 void GLTFMesh::load(const std::string& filename)
 {
@@ -78,27 +75,27 @@ void GLTFMesh::initialize(SceneManager* manager)
     if(env_map)
         d->_env_map_srv = env_map->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
-    GLTF_PBR_Renderer::CreateInfo RendererCI;
-    RendererCI.RTVFmt         = manager->swapChain()->GetDesc().ColorBufferFormat;
-    RendererCI.DSVFmt         = manager->swapChain()->GetDesc().DepthBufferFormat;
-    RendererCI.AllowDebugView = false;
-    RendererCI.UseIBL         = true;
-    RendererCI.FrontCCW       = true;
-    d->_renderer.reset(new GLTF_PBR_Renderer(manager->device(), manager->context(), RendererCI));
+    GLTF_PBR_Renderer::CreateInfo renderer_ci;
+    renderer_ci.RTVFmt         = manager->swapChain()->GetDesc().ColorBufferFormat;
+    renderer_ci.DSVFmt         = manager->swapChain()->GetDesc().DepthBufferFormat;
+    renderer_ci.AllowDebugView = false;
+    renderer_ci.UseIBL         = true;
+    renderer_ci.FrontCCW       = true;
+    d->_renderer.reset(new GLTF_PBR_Renderer(manager->device(), manager->context(), renderer_ci));
 
 
     CreateUniformBuffer(manager->device(), sizeof(CameraAttribs), "Camera attribs buffer", &d->_camera_attribs_cb);
     CreateUniformBuffer(manager->device(), sizeof(LightAttribs), "Light attribs buffer", &d->_light_attribs_cb);
     CreateUniformBuffer(manager->device(), sizeof(EnvMapRenderAttribs), "Env map render attribs buffer", &d->_env_map_attribs_cb);
 
-    StateTransitionDesc Barriers [] =
+    StateTransitionDesc barriers [] =
     {
         {d->_camera_attribs_cb,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
         {d->_light_attribs_cb,   RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
         {d->_env_map_attribs_cb, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true}//,
         //{env_map,                RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
     };
-    manager->context()->TransitionResourceStates(_countof(Barriers), Barriers);
+    manager->context()->TransitionResourceStates(_countof(barriers), barriers);
 
     if(d->_env_map_srv)
         d->_renderer->PrecomputeCubemaps(manager->device(), manager->context(), d->_env_map_srv);
@@ -110,6 +107,11 @@ void GLTFMesh::initialize(SceneManager* manager)
 	d->initialized = true;
 }
 
+void GLTFMesh::useLocalWorldFrame(bool use_local_frame) 
+{
+	d->use_local_frame = use_local_frame;
+}
+
 void GLTFMesh::render(SceneManager* manager)
 {
 	if(!d->initialized)
@@ -117,40 +119,64 @@ void GLTFMesh::render(SceneManager* manager)
 
 
 	// TODO get light info from scene manager
-    float3 m_LightDirection = float3(-1,-1,-1);
-	//Vector3 m_LightDirection(1,1,1);
-    float4 m_LightColor     = float4(1, 1, 1, 1);
-    float  m_LightIntensity = 5.f;
+    float3 light_direction = float3(-1,-1,-1);
+    float4 light_color     = float4(1, 1, 1, 1);
+    float  light_intensity = 5.f;
 
 
+    Vector3 camera_local;
+    Matrix4 local_T_model;
+    Matrix4 view_proj_local;
+    
+    if(d->use_local_frame)
     {
-        MapHelper<CameraAttribs> camAttribs(manager->context(), d->_camera_attribs_cb, MAP_WRITE, MAP_FLAG_DISCARD);
+        Matrix4 view_T_world = manager->getView();
+        Matrix4 inv_view_T_world = view_T_world.inverse();
+        Matrix4 world_T_model = getNode()->getDerivedTransform();
+        Matrix4 world_T_local = Matrix4::Identity();
+        world_T_local.block<3,1>(0,3) = inv_view_T_world.block<3,1>(0,3);
 
-        matrix_to_float4x4(manager->getProj(), camAttribs->mProjT);
-        matrix_to_float4x4(manager->getViewProj(), camAttribs->mViewProjT);
-        //matrix_to_float4x4(manager->getViewProjInv(), camAttribs->mViewProjInvT);
-        Matrix4 viewProjInv =  manager->getViewProj().inverse();
-        matrix_to_float4x4(viewProjInv, camAttribs->mViewProjInvT);
+        Matrix4 view_T_local = view_T_world * world_T_local;
+        Matrix4 inv_view_T_local = view_T_local.inverse();
+
+        local_T_model = world_T_local.inverse()*world_T_model;
+        camera_local  = inv_view_T_local.block<3,1>(0,3);
+        view_proj_local = manager->getProj()*view_T_local;
+    }
+    else
+    {
+        local_T_model = getNode()->getDerivedTransform();
+        camera_local = manager->getCameraWorldPosition();
+        view_proj_local = manager->getViewProj();
+    }
+
+    { // map helper scope
+        MapHelper<CameraAttribs> cam_attribs(manager->context(), d->_camera_attribs_cb, MAP_WRITE, MAP_FLAG_DISCARD);
+
+        matrix_to_float4x4(manager->getProj(), cam_attribs->mProjT);
+        matrix_to_float4x4(view_proj_local, cam_attribs->mViewProjT);
+        
+        Matrix4 view_proj_inv =  view_proj_local.inverse();
+        matrix_to_float4x4(view_proj_inv, cam_attribs->mViewProjInvT);
 
         float3 p;
-        vector_to_float3(manager->getCameraWorldPosition(), p);
-        camAttribs->f4Position    = float4(p, 1);
+        vector_to_float3(camera_local, p);
+        cam_attribs->f4Position    = float4(p, 1);
     }
 
-    {
-        MapHelper<LightAttribs> lightAttribs(manager->context(), d->_light_attribs_cb, MAP_WRITE, MAP_FLAG_DISCARD);
-        lightAttribs->f4Direction = m_LightDirection;
-        lightAttribs->f4Intensity = m_LightColor * m_LightIntensity;
+    { // map helper scope
+        MapHelper<LightAttribs> light_attribs(manager->context(), d->_light_attribs_cb, MAP_WRITE, MAP_FLAG_DISCARD);
+        light_attribs->f4Direction = light_direction;
+        light_attribs->f4Intensity = light_color * light_intensity;
     }
 
-    GLTF_PBR_Renderer::RenderInfo m_RenderParams;
+    GLTF_PBR_Renderer::RenderInfo render_params;
 
-    matrix_to_float4x4t(getNode()->getDerivedTransform(), m_RenderParams.ModelTransform);
-    //m_RenderParams.ModelTransform = float4x4::Identity(); // m_ModelTransform * m_ModelRotation.ToMatrix();
-    m_RenderParams.IBLScale = 0.5;
-    m_RenderParams.OcclusionStrength = 1.0;
-    d->_renderer->Render(manager->context(), *d->_model, m_RenderParams);
+    matrix_to_float4x4t(local_T_model, render_params.ModelTransform);
 
+    render_params.IBLScale = 0.5;
+    render_params.OcclusionStrength = 1.0;
+    d->_renderer->Render(manager->context(), *d->_model, render_params);
 }
 
 GLTF::Model* GLTFMesh::getGLTFModel()

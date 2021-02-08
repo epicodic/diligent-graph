@@ -32,22 +32,22 @@ public:
 
 public:
 
-	IRenderDevice* device()	{ return _device; }
+	IRenderDevice* device()	{ return device_; }
 
-	IDeviceContext* context() { return _context; }
+	IDeviceContext* context() { return context_; }
 
-	ISwapChain* swapChain() { return _swapChain; }
+	ISwapChain* swapChain() { return swap_chain_; }
 
 
 public:
 
-	Node* getRoot() { return _root.get(); }
-	const Node* getRoot() const { return _root.get(); }
+	Node* getRoot() { return root_.get(); }
+	const Node* getRoot() const { return root_.get(); }
 
-	Camera* getCamera() { return _camera; }
-	const Camera* getCamera() const { return _camera; }
+	Camera* getCamera() { return camera_; }
+	const Camera* getCamera() const { return camera_; }
 
-	void setCamera(Camera* camera) { _camera = camera; }
+	void setCamera(Camera* camera) { camera_ = camera; }
 
 public:
 
@@ -73,23 +73,18 @@ public:
 
 
 	// the following values are updated and valid during render() (i.e. in the render() methods of the renderables)
-	const Matrix4& getWorldViewProj() const { return _current_render_matrices->worldViewProj; }
-	//const Matrix4& getWorldViewProjInv() const { return _worldViewProjInv; }
-	const Matrix4& getWorldView() const { return _current_render_matrices->worldView; }
-	//const Matrix4& getWorldViewInv() const { return _worldViewInv; }
-	const Matrix4& getView() const { return _current_render_matrices->view; }
-	//const Matrix4& getViewInv() const { return _viewInv; }
-	const Matrix4& getViewProj() const { return _current_render_matrices->viewProj; }
-	//const Matrix4& getViewProjInv() const { return _viewProjInv; }
-	const Matrix4& getProj() const { return _current_render_matrices->proj; }
-	const Vector3& getCameraWorldPosition() const { return _current_render_matrices->cameraWorldPosition; }
+	const Matrix4& getWorldViewProj() const { return current_render_matrices_->worldViewProj; }
+	const Matrix4& getWorldView() const { return current_render_matrices_->worldView; }
+	const Matrix4& getView() const { return current_render_matrices_->view; }
+	const Matrix4& getViewProj() const { return current_render_matrices_->viewProj; }
+	const Matrix4& getProj() const { return current_render_matrices_->proj; }
+	const Vector3& getCameraWorldPosition() const { return current_render_matrices_->cameraWorldPosition; }
 
-	const SceneManager::Matrices& getRenderMatrices() { return *_current_render_matrices; }
-
+	const SceneManager::Matrices& getRenderMatrices() { return *current_render_matrices_; }
 
 public:
 
-	unsigned int requestStencilId() { return _next_free_stencil_id++; }
+	unsigned int requestStencilId() { return next_free_stencil_id_++; }
 
 public:
 
@@ -105,32 +100,31 @@ private:
 
 private:
 
-	dg::PSOManager _psoManager;
+	dg::PSOManager psoManager_;
 
-	IRenderDevice*  _device = nullptr;
-	IDeviceContext* _context = nullptr;
-	ISwapChain*     _swapChain = nullptr;
+	IRenderDevice*  device_ = nullptr;
+	IDeviceContext* context_ = nullptr;
+	ISwapChain*     swap_chain_ = nullptr;
 
-	//std::deque<Object*> _renderQueue;
-	typedef std::deque<Object*> RenderQueue;
-	std::map<RenderOrder, RenderQueue> _renderQueues;
+	using RenderQueue = std::deque<Object *>;
+	std::map<RenderOrder, RenderQueue> renderQueues_;
 
-	Node::Ptr _root;
-	Camera* _camera = nullptr;
+	Node::Ptr root_;
+	Camera* camera_ = nullptr;
 
-	Camera _default_camera;
-	Node::Ptr _default_camera_node;
+	Camera default_camera_;
+	Node::Ptr default_camera_node_;
 
-	Matrices _render_matrices;
-	const Matrices* _current_render_matrices = nullptr;
+	Matrices render_matrices_;
+	const Matrices* current_render_matrices_ = nullptr;
 
-	IPipelineState* _lastPSOInRender = nullptr;
-	IMaterial* _lastMaterialInRender = nullptr;
-	bool _needCommonConstantsVSUpdateInRender = true;
+	IPipelineState* last_pso_in_render_ = nullptr;
+	IMaterial* last_material_in_render_ = nullptr;
+	bool need_common_constants_vs_update_in_render_ = true;
 
-	unsigned int _next_free_stencil_id=10;
+	unsigned int next_free_stencil_id_=10;
 
-	RefCntAutoPtr<ITexture> _environment_map;
+	RefCntAutoPtr<ITexture> environment_map_;
 
 
 };

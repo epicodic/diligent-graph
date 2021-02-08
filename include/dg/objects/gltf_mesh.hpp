@@ -24,17 +24,17 @@ public:
 public:
 
 	void load(const std::string& filename);
-
 	void initialize(SceneManager* manager);
 
-	virtual void render(SceneManager* manager) override;
+	void useLocalWorldFrame(bool use_local_frame=true);
 
+	virtual void render(SceneManager* manager) override;
 	GLTF::Model* getGLTFModel();
+
 
 private:
 
 	struct Pimpl;
-
 	std::unique_ptr<Pimpl> d;
 };
 
