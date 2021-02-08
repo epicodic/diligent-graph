@@ -199,7 +199,7 @@ void AssimpMesh::Pimpl::setOpacity(float opacity)
 
 AssimpMesh::AssimpMesh(SceneManager* manager, IMaterial::Ptr material) : ManualObject(manager)
 {
-    d_.reset(new Pimpl(this, manager, material));
+    d.reset(new Pimpl(this, manager, material));
 }
 
 AssimpMesh::~AssimpMesh()
@@ -210,12 +210,12 @@ AssimpMesh::~AssimpMesh()
 void AssimpMesh::load(const std::string& filename)
 {
     clear();
-    d_->loadMesh(filename);
+    d->loadMesh(filename);
 }
 
 void AssimpMesh::setOpacity(float opacity)
 {
-    d_->setOpacity(opacity);
+    d->setOpacity(opacity);
 }
 
 

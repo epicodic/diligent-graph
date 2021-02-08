@@ -20,7 +20,7 @@ public:
 
 	virtual void render() override;
 	virtual void setOpacity(float opacity) override;
-	virtual Eigen::Vector2f getSize() const override { return _size; }
+	virtual Eigen::Vector2f getSize() const override { return size_; }
 
 private:
 
@@ -31,7 +31,7 @@ private:
     dg::UnlitMaterial::Ptr material_border_;
     dg::DynamicTexture texture_;
 
-    Eigen::Vector2f _size = Eigen::Vector2f(0.0f,0.0f); // NOLINT
+    Eigen::Vector2f size_ = Eigen::Vector2f(0.0f,0.0f);
 
 };
 

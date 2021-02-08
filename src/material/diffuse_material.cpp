@@ -73,7 +73,7 @@ void main(in  PSInput  PSIn,
 }
 )===";
 
-std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> DiffuseMaterial::shared_shader_programs;
+std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> DiffuseMaterial::shared_shader_programs_;
 
 DiffuseMaterial::DiffuseMaterial(IRenderDevice* device)
 {
@@ -82,7 +82,7 @@ DiffuseMaterial::DiffuseMaterial(IRenderDevice* device)
 
 void DiffuseMaterial::initialize(IRenderDevice* device)
 {
-	std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs[device];
+	std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs_[device];
 
 	if(shared_shader_program.expired())
 	{

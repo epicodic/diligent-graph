@@ -68,14 +68,14 @@ private:
 	SceneManager* manager_;
 
 	Sections sections_;
-	std::unique_ptr<Section> currentSection_;
+	std::unique_ptr<Section> current_section_;
 
-	std::size_t vertexSize_ = 0;
-	std::size_t vertexCount_ = 0;
+	std::size_t vertex_size_ = 0;
+	std::size_t vertex_count_ = 0;
 	float* buf_ptr_ = nullptr;
 	std::vector<float> buf_;
 
-	std::size_t indexCount_ = 0;
+	std::size_t index_count_ = 0;
 	std::vector<std::uint32_t> idxbuf_;
 
 	RenderOrder render_order_;

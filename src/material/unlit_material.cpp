@@ -77,7 +77,7 @@ void main(in  PSInput  PSIn,
 }
 )===";
 
-std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> UnlitMaterial::shared_shader_programs;
+std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> UnlitMaterial::shared_shader_programs_;
 
 UnlitMaterial::UnlitMaterial(IRenderDevice* device)
 {
@@ -96,7 +96,7 @@ void UnlitMaterial::initialize(IRenderDevice* device)
 	blend_desc_.BlendOpAlpha   = BLEND_OPERATION_ADD;
 
     std::pair<IRenderDevice*, int> key(device, texture ? 1 : 0);
-	std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs[key];
+	std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs_[key];
 
 	if(shared_shader_program.expired())
 	{

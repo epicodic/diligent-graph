@@ -45,7 +45,7 @@ public:
 
 private:
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp_;
+    std::chrono::time_point<std::chrono::high_resolution_clock> last_timestamp_;
 
 };
 

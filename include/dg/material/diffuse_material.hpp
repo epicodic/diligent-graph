@@ -24,7 +24,7 @@ private:
 
 private:
 
-	static std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> shared_shader_programs;
+	static std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> shared_shader_programs_;
 };
 
 

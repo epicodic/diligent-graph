@@ -199,7 +199,7 @@ void SceneManager::clearRenderQueues()
 
 void SceneManager::render(Renderable* r, const Matrices& matrices)
 {
-	const Matrices* prevrender_matrices = current_render_matrices_;
+	const Matrices* prev_render_matrices = current_render_matrices_;
 	current_render_matrices_ = &matrices;
 
 	if(r->pso_needs_update_)
@@ -276,7 +276,7 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
     attr.Flags = DRAW_FLAG_VERIFY_ALL;
     context()->DrawIndexed(attr);
 
-    current_render_matrices_ = prevrender_matrices;
+    current_render_matrices_ = prev_render_matrices;
 }
 
 void SceneManager::render(RawRenderable* r, const Matrices& matrices)

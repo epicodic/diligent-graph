@@ -65,7 +65,7 @@ void CanvasImageLayer::update(const dg::DynamicTexture::ImageData& data)
 
 		float width = data.width * scale_;
 		float height = data.height * scale_;
-		_size << width, height;
+		size_ << width, height;
 
 		float m_far_plane = 1.0;
 

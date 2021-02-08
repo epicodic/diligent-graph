@@ -118,12 +118,12 @@ void Node::lookAt(const Vector3& target, const Vector3& up)
 	Vector3 yaxis = zaxis.cross(xaxis);
 	yaxis.normalize();
 
-	Matrix3 r;
-	r.col(0) = xaxis;
-	r.col(1) = yaxis;
-	r.col(2) = zaxis;
+	Matrix3 R;
+	R.col(0) = xaxis;
+	R.col(1) = yaxis;
+	R.col(2) = zaxis;
 
-	setOrientation(Quaternion(r));
+	setOrientation(Quaternion(R));
 }
 
 }

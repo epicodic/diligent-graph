@@ -25,7 +25,7 @@ private:
 
     class Pimpl;
 
-    std::unique_ptr<Pimpl> d_;
+    std::unique_ptr<Pimpl> d;
 };
 
 }
