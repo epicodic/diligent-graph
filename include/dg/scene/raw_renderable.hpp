@@ -23,7 +23,7 @@ public:
 
 	void setRenderOrder(RenderOrder order)
     {
-        _render_order = order;
+        render_order_ = order;
     }
 
 	virtual void render(SceneManager* manager) = 0;
@@ -32,7 +32,7 @@ protected:
 
 	friend class SceneManager;
 
-	RenderOrder  _render_order ;
+	RenderOrder  render_order_ ;
 
 };
 

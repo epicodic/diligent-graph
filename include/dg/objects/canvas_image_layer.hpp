@@ -24,14 +24,14 @@ public:
 
 private:
 
-    float _scale = 1.0f;
+    float scale_ = 1.0f;
 
-    dg::ManualObject::UniquePtr _manualObject;
-    dg::UnlitMaterial::Ptr _material;
-    dg::UnlitMaterial::Ptr _material_border;
-    dg::DynamicTexture _texture;
+    dg::ManualObject::UniquePtr manualObject_;
+    dg::UnlitMaterial::Ptr material_;
+    dg::UnlitMaterial::Ptr material_border_;
+    dg::DynamicTexture texture_;
 
-    Eigen::Vector2f _size = Eigen::Vector2f(0.0f,0.0f);
+    Eigen::Vector2f _size = Eigen::Vector2f(0.0f,0.0f); // NOLINT
 
 };
 

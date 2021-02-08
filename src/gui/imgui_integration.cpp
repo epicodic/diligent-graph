@@ -28,15 +28,15 @@ ImGuiIntegration::ImGuiIntegration(IRenderDevice*    device,
         io.KeyMap[p.second] = p.second;
 
 
-    lastTimestamp = std::chrono::high_resolution_clock::now();
+    lastTimestamp_ = std::chrono::high_resolution_clock::now();
 }
 
 
 void ImGuiIntegration::NewFrame()
 {
     auto now        = std::chrono::high_resolution_clock::now();
-    auto elapsed_ns = now - lastTimestamp;
-    lastTimestamp   = now;
+    auto elapsed_ns = now - lastTimestamp_;
+    lastTimestamp_   = now;
     ImGuiIO& io        = ImGui::GetIO();
     io.DeltaTime    = static_cast<float>(elapsed_ns.count() / 1e+9);
     ImGuiImplDiligent::NewFrame();

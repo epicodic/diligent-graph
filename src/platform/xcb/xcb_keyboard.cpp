@@ -42,24 +42,24 @@ static bool isKeypad(xkb_keysym_t sym) {
     return sym >= XKB_KEY_KP_Space && sym <= XKB_KEY_KP_9;
 }
 
-XCBKeyboard::XCBKeyboard(xcb_connection_t* c) : _connection(c)
+XCBKeyboard::XCBKeyboard(xcb_connection_t* c) : connection_(c)
 {
 	int32_t device_id;
 
-	_xkb_context.reset(xkb_context_new(XKB_CONTEXT_NO_FLAGS));
-	if (!_xkb_context)
+	xkb_context_.reset(xkb_context_new(XKB_CONTEXT_NO_FLAGS));
+	if (!xkb_context_)
 		DG_THROW("Failed to create keyboard context");
 
-	device_id = xkb_x11_get_core_keyboard_device_id(_connection);
+	device_id = xkb_x11_get_core_keyboard_device_id(connection_);
 	if (device_id == -1)
 		DG_THROW("Failed to get core keyboard device id");
 
-	_xkb_keymap.reset(xkb_x11_keymap_new_from_device(_xkb_context.get(), _connection, device_id, XKB_KEYMAP_COMPILE_NO_FLAGS));
-	if (!_xkb_keymap)
+	xkb_keymap_.reset(xkb_x11_keymap_new_from_device(xkb_context_.get(), connection_, device_id, XKB_KEYMAP_COMPILE_NO_FLAGS));
+	if (!xkb_keymap_)
 		DG_THROW("Failed to create keymap");
 
-	_xkb_state.reset(xkb_x11_state_new_from_device(_xkb_keymap.get(), _connection, device_id));
-	if (!_xkb_state)
+	xkb_state_.reset(xkb_x11_state_new_from_device(xkb_keymap_.get(), connection_, device_id));
+	if (!xkb_state_)
 		DG_THROW("Failed to create keyboard state");
 
 	updateXKBMods();
@@ -71,27 +71,27 @@ void XCBKeyboard::initializeXKB(xcb_connection_t* connection)
 	if (!reply || !reply->present)
 		DG_THROW("XKeyboard extension not present on the X server");
 
-	int wantMajor = 1;
-	int wantMinor = 0;
-	auto xkbQuery = DG_XCB_REPLY(xcb_xkb_use_extension, connection, wantMajor, wantMinor);
-	if (!xkbQuery)
+	int want_major = 1;
+	int want_minor = 0;
+	auto xkb_query = DG_XCB_REPLY(xcb_xkb_use_extension, connection, want_major, want_minor);
+	if (!xkb_query)
 		DG_THROW("Failed to initialize XKeyboard extension");
 
-	if (!xkbQuery->supported)
+	if (!xkb_query->supported)
 		DG_THROW("unsupported XKB version"); //  wantMajor, wantMinor, xkbQuery->serverMajor, xkbQuery->serverMinor);
 }
 
 
 void XCBKeyboard::updateXKBMods()
 {
-    _xkb_mods.shift = xkb_keymap_mod_get_index(_xkb_keymap.get(), XKB_MOD_NAME_SHIFT);
-    _xkb_mods.lock = xkb_keymap_mod_get_index(_xkb_keymap.get(), XKB_MOD_NAME_CAPS);
-    _xkb_mods.control = xkb_keymap_mod_get_index(_xkb_keymap.get(), XKB_MOD_NAME_CTRL);
-    _xkb_mods.mod1 = xkb_keymap_mod_get_index(_xkb_keymap.get(), "Mod1");
-    _xkb_mods.mod2 = xkb_keymap_mod_get_index(_xkb_keymap.get(), "Mod2");
-    _xkb_mods.mod3 = xkb_keymap_mod_get_index(_xkb_keymap.get(), "Mod3");
-    _xkb_mods.mod4 = xkb_keymap_mod_get_index(_xkb_keymap.get(), "Mod4");
-    _xkb_mods.mod5 = xkb_keymap_mod_get_index(_xkb_keymap.get(), "Mod5");
+    xkb_mods_.shift = xkb_keymap_mod_get_index(xkb_keymap_.get(), XKB_MOD_NAME_SHIFT);
+    xkb_mods_.lock = xkb_keymap_mod_get_index(xkb_keymap_.get(), XKB_MOD_NAME_CAPS);
+    xkb_mods_.control = xkb_keymap_mod_get_index(xkb_keymap_.get(), XKB_MOD_NAME_CTRL);
+    xkb_mods_.mod1 = xkb_keymap_mod_get_index(xkb_keymap_.get(), "Mod1");
+    xkb_mods_.mod2 = xkb_keymap_mod_get_index(xkb_keymap_.get(), "Mod2");
+    xkb_mods_.mod3 = xkb_keymap_mod_get_index(xkb_keymap_.get(), "Mod3");
+    xkb_mods_.mod4 = xkb_keymap_mod_get_index(xkb_keymap_.get(), "Mod4");
+    xkb_mods_.mod5 = xkb_keymap_mod_get_index(xkb_keymap_.get(), "Mod5");
 }
 
 
@@ -144,22 +144,22 @@ xkb_mod_mask_t XCBKeyboard::xkbModMask(std::uint16_t state)
 {
     xkb_mod_mask_t xkb_mask = 0;
 
-    if ((state & XCB_MOD_MASK_SHIFT) && _xkb_mods.shift != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.shift);
-    if ((state & XCB_MOD_MASK_LOCK) && _xkb_mods.lock != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.lock);
-    if ((state & XCB_MOD_MASK_CONTROL) && _xkb_mods.control != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.control);
-    if ((state & XCB_MOD_MASK_1) && _xkb_mods.mod1 != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.mod1);
-    if ((state & XCB_MOD_MASK_2) && _xkb_mods.mod2 != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.mod2);
-    if ((state & XCB_MOD_MASK_3) && _xkb_mods.mod3 != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.mod3);
-    if ((state & XCB_MOD_MASK_4) && _xkb_mods.mod4 != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.mod4);
-    if ((state & XCB_MOD_MASK_5) && _xkb_mods.mod5 != XKB_MOD_INVALID)
-        xkb_mask |= (1 << _xkb_mods.mod5);
+    if ((state & XCB_MOD_MASK_SHIFT) && xkb_mods_.shift != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.shift);
+    if ((state & XCB_MOD_MASK_LOCK) && xkb_mods_.lock != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.lock);
+    if ((state & XCB_MOD_MASK_CONTROL) && xkb_mods_.control != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.control);
+    if ((state & XCB_MOD_MASK_1) && xkb_mods_.mod1 != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.mod1);
+    if ((state & XCB_MOD_MASK_2) && xkb_mods_.mod2 != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.mod2);
+    if ((state & XCB_MOD_MASK_3) && xkb_mods_.mod3 != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.mod3);
+    if ((state & XCB_MOD_MASK_4) && xkb_mods_.mod4 != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.mod4);
+    if ((state & XCB_MOD_MASK_5) && xkb_mods_.mod5 != XKB_MOD_INVALID)
+        xkb_mask |= (1 << xkb_mods_.mod5);
 
     return xkb_mask;
 }
@@ -174,29 +174,29 @@ int XCBKeyboard::keycodeToKey(xcb_keycode_t code, std::uint16_t state, std::stri
 {
 	//ModifierKey modifiers = stateToModifier(state);
 
-    struct xkb_state *xkbState = _xkb_state.get();
-	        xkb_mod_mask_t modsDepressed = xkb_state_serialize_mods(xkbState, XKB_STATE_MODS_DEPRESSED);
-	        xkb_mod_mask_t modsLatched = xkb_state_serialize_mods(xkbState, XKB_STATE_MODS_LATCHED);
-	        xkb_mod_mask_t modsLocked = xkb_state_serialize_mods(xkbState, XKB_STATE_MODS_LOCKED);
-	        xkb_mod_mask_t xkbMask = xkbModMask(state);
+    struct xkb_state *xkb_state = xkb_state_.get();
+	        xkb_mod_mask_t mods_depressed = xkb_state_serialize_mods(xkb_state, XKB_STATE_MODS_DEPRESSED);
+	        xkb_mod_mask_t mods_latched = xkb_state_serialize_mods(xkb_state, XKB_STATE_MODS_LATCHED);
+	        xkb_mod_mask_t mods_locked = xkb_state_serialize_mods(xkb_state, XKB_STATE_MODS_LOCKED);
+	        xkb_mod_mask_t xkb_mask = xkbModMask(state);
 
-	        xkb_mod_mask_t latched = modsLatched & xkbMask;
-	        xkb_mod_mask_t locked = modsLocked & xkbMask;
-	        xkb_mod_mask_t depressed = modsDepressed & xkbMask;
+	        xkb_mod_mask_t latched = mods_latched & xkb_mask;
+	        xkb_mod_mask_t locked = mods_locked & xkb_mask;
+	        xkb_mod_mask_t depressed = mods_depressed & xkb_mask;
 	        // set modifiers in depressed if they don't appear in any of the final masks
-	        depressed |= ~(depressed | latched | locked) & xkbMask;
+	        depressed |= ~(depressed | latched | locked) & xkb_mask;
 
-	        xkb_state_component changedComponents = xkb_state_update_mask(
-	                    xkbState, depressed, latched, locked, 0, 0, lockedGroup(state));
+	        xkb_state_component changed_components = xkb_state_update_mask(
+	                    xkb_state, depressed, latched, locked, 0, 0, lockedGroup(state));
 
 
-	xcb_keysym_t ks = xkb_state_key_get_one_sym(_xkb_state.get(), code);
+	xcb_keysym_t ks = xkb_state_key_get_one_sym(xkb_state_.get(), code);
 	int key = keysymToKey(ks);
 
 	if(text)
 	{
 		char buf[32];
-		int size = xkb_state_key_get_utf8(_xkb_state.get(), code, buf, 32);
+		int size = xkb_state_key_get_utf8(xkb_state_.get(), code, buf, 32);
 		*text = std::string(buf, size);
 	}
 
@@ -209,7 +209,7 @@ int XCBKeyboard::keycodeToKey(xcb_keycode_t code, std::uint16_t state, std::stri
 
 static const KeyTable& keyTable()
 {
-	static KeyTable keyTbl =
+	static KeyTable key_tbl =
 	{
 		{XKB_KEY_Escape,                  Key_Escape},
 		{XKB_KEY_Tab,                     Key_Tab},
@@ -438,7 +438,7 @@ static const KeyTable& keyTable()
 		{XKB_KEY_XF86LaunchF,             Key_LaunchH}
 	};
 
-	return keyTbl;
+	return key_tbl;
 }
 
 }

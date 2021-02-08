@@ -48,33 +48,24 @@ void XCBVulkanRenderWindow::create(const CreationOptions& options)
 	createWindow(connection, screen->root, screen->root_visual, options);
 
 
-    xcb_map_window(_connection, _window);
+    xcb_map_window(connection_, window_);
 
 
-    Diligent::EngineVkCreateInfo EngVkAttribs;
-    EngVkAttribs.EnableValidation = true;
-/*
-    EngVkAttribs.MainDescriptorPoolSize.MaxDescriptorSets /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumSeparateSamplerDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumCombinedSamplerDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumSampledImageDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumStorageImageDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumUniformBufferDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumUniformTexelBufferDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumStorageTexelBufferDescriptors /= 8;
-*/
-    auto* pFactoryVk = Diligent::GetEngineFactoryVk();
-    pFactoryVk->CreateDeviceAndContextsVk(EngVkAttribs, &d->device, &d->context);
-    dg::SwapChainDesc     SCDesc;
-    dg::LinuxNativeWindow XCBWindow;
-    XCBWindow.WindowId       = _window;
-    XCBWindow.pXCBConnection = _connection;
-    pFactoryVk->CreateSwapChainVk(d->device, d->context, SCDesc, XCBWindow, &d->swapChain);
+    Diligent::EngineVkCreateInfo eng_vk_attribs;
+    eng_vk_attribs.EnableValidation = true;
+
+    auto* factory_vk = Diligent::GetEngineFactoryVk();
+    factory_vk->CreateDeviceAndContextsVk(eng_vk_attribs, &d->device, &d->context);
+    dg::SwapChainDesc     sc_desc;
+    dg::LinuxNativeWindow xcb_window;
+    xcb_window.WindowId       = window_;
+    xcb_window.pXCBConnection = connection_;
+    factory_vk->CreateSwapChainVk(d->device, d->context, sc_desc, xcb_window, &d->swap_chain);
 
     xcb_flush(connection);
 
     initialize();
-    resizeEvent(ResizeEvent{_width,  _height});
+    resizeEvent(ResizeEvent{width_,  height_});
 }
 
 
@@ -102,7 +93,7 @@ public:
 
 };
 
-XCBVulkanRenderWindowFactory g_XCBVulkanRenderWindowFactory;
+XCBVulkanRenderWindowFactory g_xcb_vulkan_render_window_factory;
 
 
 }

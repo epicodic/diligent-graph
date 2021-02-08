@@ -15,7 +15,7 @@ public:
 	IPipelineState* getPSO(IRenderDevice* device, const PipelineStateDesc& desc, std::size_t desc_hash);
 
 private:
-	std::map<std::size_t, IPipelineState* > m_pso_pool;
+	std::map<std::size_t, IPipelineState* > m_pso_pool_;
 };
 
 }

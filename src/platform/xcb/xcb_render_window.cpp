@@ -7,7 +7,7 @@
 
 namespace dg {
 
-static const char *xcb_atomnames[] =
+static const char *g_xcb_atomnames[] =
 {
 	"WM_PROTOCOLS",
 	"WM_DELETE_WINDOW",
@@ -59,8 +59,8 @@ static xcb_cursor_t createCursor(::Display *dpy, int cshape)
 
 XCBRenderWindow::~XCBRenderWindow()
 {
-	for(auto& p : _cursors)
-		xcb_free_cursor(_connection, p.second);
+	for(auto& p : cursors_)
+		xcb_free_cursor(connection_, p.second);
 }
 
 void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t screen_root,  int visual, const CreationOptions& options, xcb_colormap_t colormap)
@@ -74,15 +74,15 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
 	while (scr-- > 0)
 		xcb_screen_next(&iter);
 
-	_screen = iter.data;
+	screen_ = iter.data;
 
-	_display = XOpenDisplay(0);
-	_connection = connection;
-	_screen_root = screen_root;
-	_width = options.width;
-	_height = options.height;
+	display_ = XOpenDisplay(0);
+	connection_ = connection;
+	screen_root_ = screen_root;
+	width_ = options.width;
+	height_ = options.height;
 
-	_window = xcb_generate_id(_connection);
+	window_ = xcb_generate_id(connection_);
 
 	// create window
     uint32_t eventmask = XCB_EVENT_MASK_EXPOSURE |
@@ -107,12 +107,12 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
     //value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 	xcb_create_window(
-	      _connection,
+	      connection_,
 	      XCB_COPY_FROM_PARENT,
-	      _window,
-		  _screen_root,
+	      window_,
+		  screen_root_,
 	      options.posx, options.posy,
-		  _width, _height,
+		  width_, height_,
 	      0,
 	      XCB_WINDOW_CLASS_INPUT_OUTPUT,
 	      visual,
@@ -120,21 +120,21 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
 	      valuelist
 	      );
 
-	xcb_map_window(_connection, _window);
+	xcb_map_window(connection_, window_);
 
 	initializeAtoms(connection);
 
     xcb_atom_t properties[5];
-    int propertyCount = 0;
-    properties[propertyCount++] = atom(WM_DELETE_WINDOW);
+    int property_count = 0;
+    properties[property_count++] = atom(WM_DELETE_WINDOW);
 
     xcb_change_property(connection,
                         XCB_PROP_MODE_REPLACE,
-                        _window,
+                        window_,
                         atom(WM_PROTOCOLS),
                         XCB_ATOM_ATOM,
                         32,
-                        propertyCount,
+                        property_count,
                         properties);
 
 	if(options.icon.rgba_pixmap)
@@ -146,14 +146,14 @@ void XCBRenderWindow::createWindow(xcb_connection_t* connection, xcb_window_t sc
 
 	// on some systems the position given in xcb_create_window is not respected, hence, move the window here explicitly
 	const static int coords[] = { options.posx, options.posy };
-	xcb_configure_window (connection, _window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, (const uint32_t*) coords);
+	xcb_configure_window (connection, window_, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, (const uint32_t*) coords);
 
-	_keyboard.reset(new XCBKeyboard(_connection));
+	keyboard_.reset(new XCBKeyboard(connection_));
 
 	for(int i=0; i<=(int)Cursor::Busy; ++i)
 	{
-		xcb_cursor_t c = createCursor(_display, i);
-		_cursors[i] = c;
+		xcb_cursor_t c = createCursor(display_, i);
+		cursors_[i] = c;
 	}
 
     xcb_flush(connection);
@@ -177,19 +177,19 @@ void DestroyXCBConnectionAndWindow(XCBInfo& info)
 
 void XCBRenderWindow::initializeAtoms(xcb_connection_t *connection)
 {
-	xcb_intern_atom_cookie_t cookies[NumAtoms];
+	xcb_intern_atom_cookie_t cookies[NUM_ATOMS];
 
-	for (int i = 0; i < NumAtoms; ++i)
-		cookies[i] = xcb_intern_atom(connection, false, strlen(xcb_atomnames[i]), xcb_atomnames[i]);
+	for (int i = 0; i < NUM_ATOMS; ++i)
+		cookies[i] = xcb_intern_atom(connection, false, strlen(g_xcb_atomnames[i]), g_xcb_atomnames[i]);
 
-	for (int i = 0; i < NumAtoms; ++i)
+	for (int i = 0; i < NUM_ATOMS; ++i)
 	{
 		xcb_intern_atom_reply_t* reply = xcb_intern_atom_reply(connection, cookies[i], nullptr);
 
 		if(!reply)
 			DG_THROW("Could not get atom");
 
-		_atoms[i] = reply->atom;
+		atoms_[i] = reply->atom;
 		free(reply);
 	}
 }
@@ -197,12 +197,12 @@ void XCBRenderWindow::initializeAtoms(xcb_connection_t *connection)
 
 void XCBRenderWindow::setCursor(Cursor cursor)
 {
-	if(cursor == _current_cursor)
+	if(cursor == current_cursor_)
 		return;
 
     xcb_cursor_t c = XCB_NONE;
-	auto it = _cursors.find((int)cursor);
-	if(it==_cursors.end())
+	auto it = cursors_.find((int)cursor);
+	if(it==cursors_.end())
 	{
 		std::cout << "Cursor not found " << std::endl;
 		return;
@@ -210,10 +210,10 @@ void XCBRenderWindow::setCursor(Cursor cursor)
 	else
 		c = it->second;
 
-    xcb_change_window_attributes(_connection, _window, XCB_CW_CURSOR, &c);
-    xcb_flush(_connection);
+    xcb_change_window_attributes(connection_, window_, XCB_CW_CURSOR, &c);
+    xcb_flush(connection_);
 
-    _current_cursor = cursor;
+    current_cursor_ = cursor;
 }
 
 void XCBRenderWindow::setWindowIcon(const Icon& icon) 
@@ -238,9 +238,9 @@ void XCBRenderWindow::setWindowIcon(const Icon& icon)
 		}
 
 
-		xcb_change_property(_connection,
+		xcb_change_property(connection_,
 			XCB_PROP_MODE_REPLACE,
-			_window,
+			window_,
 			atom(_NET_WM_ICON),
 			atom(CARDINAL),
 			32,
@@ -249,8 +249,8 @@ void XCBRenderWindow::setWindowIcon(const Icon& icon)
 	}
 	else // remove any custom icon
 	{
-		xcb_delete_property(_connection,
-			_window,
+		xcb_delete_property(connection_,
+			window_,
 			atom(_NET_WM_ICON));
 	}
 
@@ -259,12 +259,12 @@ void XCBRenderWindow::setWindowIcon(const Icon& icon)
 
 bool XCBRenderWindow::spinOnce()
 {
-	if(_destroyed)
+	if(destroyed_)
 		return false;
 
 
 	xcb_generic_event_t* event;
-	while ((event = xcb_poll_for_event(_connection)) != nullptr)
+	while ((event = xcb_poll_for_event(connection_)) != nullptr)
 	{
 
 		switch(event->response_type & ~0x80)
@@ -272,10 +272,10 @@ bool XCBRenderWindow::spinOnce()
 			case XCB_CLIENT_MESSAGE:
 			{
 				const xcb_client_message_event_t* e = reinterpret_cast<const xcb_client_message_event_t*>(event);
-				xcb_atom_t protocolAtom = e->data.data32[0];
-				if (protocolAtom == atom(WM_DELETE_WINDOW))
+				xcb_atom_t protocol_atom = e->data.data32[0];
+				if (protocol_atom == atom(WM_DELETE_WINDOW))
 				{
- 					_destroyed = true;
+ 					destroyed_ = true;
 					return false;
 				}
 				break;
@@ -283,7 +283,7 @@ bool XCBRenderWindow::spinOnce()
 
 			case XCB_DESTROY_NOTIFY:
 			{
-				_destroyed = true;
+				destroyed_ = true;
 				return false;
 			}
 
@@ -294,16 +294,16 @@ bool XCBRenderWindow::spinOnce()
 
 			case XCB_CONFIGURE_NOTIFY:
 			{
-				const auto* cfgEvent = reinterpret_cast<const xcb_configure_notify_event_t*>(event);
+				const auto* cfg_event = reinterpret_cast<const xcb_configure_notify_event_t*>(event);
 
-				if ((cfgEvent->width != _width) || (cfgEvent->height != _height))
+				if ((cfg_event->width != width_) || (cfg_event->height != height_))
 				{
-					_width  = cfgEvent->width;
-					_height = cfgEvent->height;
-					if (_width > 0 && _height > 0)
+					width_  = cfg_event->width;
+					height_ = cfg_event->height;
+					if (width_ > 0 && height_ > 0)
 					{
-						d->swapChain->Resize( cfgEvent->width,  cfgEvent->height);
-						resizeEvent(ResizeEvent{cfgEvent->width,  cfgEvent->height});
+						d->swap_chain->Resize( cfg_event->width,  cfg_event->height);
+						resizeEvent(ResizeEvent{cfg_event->width,  cfg_event->height});
 					}
 				}
 				break;
@@ -311,20 +311,20 @@ bool XCBRenderWindow::spinOnce()
 
 			case XCB_KEY_PRESS:
 			{
-				const xcb_key_press_event_t* keyEvent = reinterpret_cast<const xcb_key_press_event_t*>(event);
+				const xcb_key_press_event_t* key_event = reinterpret_cast<const xcb_key_press_event_t*>(event);
 				std::string text;
 				std::uint32_t unicode;
-				int key = _keyboard->keycodeToKey(keyEvent->detail, keyEvent->state, &text, &unicode);
+				int key = keyboard_->keycodeToKey(key_event->detail, key_event->state, &text, &unicode);
 				keyPressEvent(dg::KeyEvent{key,text, unicode});
 				break;
 			}
 
 			case XCB_KEY_RELEASE:
 			{
-				const xcb_key_press_event_t* keyEvent = reinterpret_cast<const xcb_key_release_event_t*>(event);
+				const xcb_key_press_event_t* key_event = reinterpret_cast<const xcb_key_release_event_t*>(event);
 				std::string text;
 				std::uint32_t unicode;
-				int key = _keyboard->keycodeToKey(keyEvent->detail, keyEvent->state, &text, &unicode);
+				int key = keyboard_->keycodeToKey(key_event->detail, key_event->state, &text, &unicode);
 				keyReleaseEvent(dg::KeyEvent{key,text, unicode});
 				break;
 			}
@@ -368,8 +368,8 @@ bool XCBRenderWindow::spinOnce()
 	            {
 	            	MouseEvent ev;
 	            	int button = translateMouseButton(press->detail);
-	            	_mouseButtonState |= button;
-	            	ev.buttons = _mouseButtonState;
+	            	mouseButtonState_ |= button;
+	            	ev.buttons = mouseButtonState_;
 	            	mousePressEvent(ev);
 	            }
 
@@ -389,9 +389,9 @@ bool XCBRenderWindow::spinOnce()
 	            else
 	            {
 					int button = translateMouseButton(press->detail);
-					_mouseButtonState &= ~button;
+					mouseButtonState_ &= ~button;
 	            	MouseEvent ev;
-					ev.buttons = _mouseButtonState;
+					ev.buttons = mouseButtonState_;
 					mouseReleaseEvent(ev);
 	            }
 				// TODO: return if event was accepted
@@ -418,7 +418,7 @@ void XCBRenderWindow::setNetWmState(bool set, xcb_atom_t one, xcb_atom_t two)
 	ev.response_type = XCB_CLIENT_MESSAGE;
 	ev.format = 32;
 	ev.type = atom(_NET_WM_STATE);
-	ev.window = _window;
+	ev.window = window_;
 	ev.data.data32[0] = set ? 1 : 0;
 	ev.data.data32[1] = one;
 	ev.data.data32[2] = two;
@@ -426,18 +426,18 @@ void XCBRenderWindow::setNetWmState(bool set, xcb_atom_t one, xcb_atom_t two)
 	ev.data.data32[4] = 0;
 
 	xcb_send_event(
-			_connection,
+			connection_,
 			0,
-			_screen_root,
+			screen_root_,
 			XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
 			(const char*)(&ev));
 }
 
 bool XCBRenderWindow::getNetWmState(xcb_atom_t one) const
 {
-	xcb_get_property_cookie_t cookie = xcb_get_property_unchecked(_connection, 0, _window, atom(_NET_WM_STATE), XCB_ATOM_ATOM, 0, 1);
+	xcb_get_property_cookie_t cookie = xcb_get_property_unchecked(connection_, 0, window_, atom(_NET_WM_STATE), XCB_ATOM_ATOM, 0, 1);
 
-	xcb_get_property_reply_t *prop_reply = xcb_get_property_reply(_connection, cookie, nullptr);
+	xcb_get_property_reply_t *prop_reply = xcb_get_property_reply(connection_, cookie, nullptr);
 
 	if (prop_reply) {
 		if (prop_reply->format == 32) {
@@ -455,9 +455,9 @@ bool XCBRenderWindow::getNetWmState(xcb_atom_t one) const
 
 void XCBRenderWindow::setWindowTitle(const std::string& title)
 {
-    xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING,
+    xcb_change_property(connection_, XCB_PROP_MODE_REPLACE, window_, XCB_ATOM_WM_NAME, XCB_ATOM_STRING,
                         8, title.length(), title.c_str());
-    xcb_flush(_connection);
+    xcb_flush(connection_);
 }
 
 void XCBRenderWindow::showFullscreen(bool fullscreen)

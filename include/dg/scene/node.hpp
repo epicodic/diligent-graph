@@ -28,12 +28,12 @@ public:
 
 	void removeChild(const Node* child);
 
-	const std::vector<Node*>& getChildren() const { return _children; }
-	std::vector<Node*>& getChildren() { return _children; }
+	const std::vector<Node*>& getChildren() const { return children_; }
+	std::vector<Node*>& getChildren() { return children_; }
 
 	void setScale(const Vector3& scale)
 	{
-		_scale = scale;
+		scale_ = scale;
 	}
 
 	void setScale(Real scale)
@@ -43,17 +43,17 @@ public:
 
 	const Vector3& getScale() const
 	{
-		return _scale;
+		return scale_;
 	}
 
 	void setOrientation(const Quaternion& q)
 	{
-		_orientation = q;
+		orientation_ = q;
 	}
 
 	const Quaternion& getOrientation() const
 	{
-		return _orientation;
+		return orientation_;
 	}
 
 
@@ -67,23 +67,23 @@ public:
 
 	void setPosition(const Vector3& position)
 	{
-		_position = position;
+		position_ = position;
 	}
 
 	const Vector3& getPosition() const
 	{
-		return _position;
+		return position_;
 	}
 
 
 	const Transform& getTransform() const
 	{
-		return _transform;
+		return transform_;
 	}
 
 	const Transform& getDerivedTransform() const
 	{
-		return _derivedTransform;
+		return derivedTransform_;
 	}
 
 	void updateTransforms()
@@ -91,23 +91,23 @@ public:
 	    if(!isEnabled())
 	        return;
 
-		_transform = math::transformFromScaleRotTrans(_scale, _orientation, _position);
+		transform_ = math::transformFromScaleRotTrans(scale_, orientation_, position_);
 
-		if(!_parent)
-			_derivedTransform = _transform;
+		if(!parent_)
+			derivedTransform_ = transform_;
 		else
-			_derivedTransform = _parent->_derivedTransform * _transform;
+			derivedTransform_ = parent_->derivedTransform_ * transform_;
 
-		for(Node* child : _children)
+		for(Node* child : children_)
 			child->updateTransforms();
 	}
 
 	void setEnabled(bool enabled)
 	{
-	    _enabled = enabled;
+	    enabled_ = enabled;
 	}
 
-	bool isEnabled() const { return _enabled; }
+	bool isEnabled() const { return enabled_; }
 
 
 	Object* attach(Object* obj);
@@ -154,23 +154,23 @@ public:
 	void detach(ObjectUniquePtr obj) { detach(obj.get()); }
 	*/
 
-	const std::vector<Object*>& getObjects() const { return _objects; }
+	const std::vector<Object*>& getObjects() const { return objects_; }
 
 private:
 
-	bool _enabled = true;
-	Node::Ptr _parent;
-	std::size_t _child_idx = 0; // our index in _parent->children (for fast removal)
-	std::vector<Node*> _children;
-	std::vector<Object*> _objects;
+	bool enabled_ = true;
+	Node::Ptr parent_;
+	std::size_t child_idx_ = 0; // our index in _parent->children (for fast removal)
+	std::vector<Node*> children_;
+	std::vector<Object*> objects_;
 
-	Vector3    _position    = Vector3(0.0,0.0,0.0);
-	Quaternion _orientation = Quaternion(1.0,0.0,0.0,0.0);
-	Vector3    _scale       = Vector3(1.0,1.0,1.0);
+	Vector3    position_    = Vector3(0.0,0.0,0.0);
+	Quaternion orientation_ = Quaternion(1.0,0.0,0.0,0.0);
+	Vector3    scale_       = Vector3(1.0,1.0,1.0);
 
 	// both are computed from parent and _position, _orientation and _scale in updateTransforms()
-	Transform  _transform;
-	Transform  _derivedTransform;
+	Transform  transform_;
+	Transform  derivedTransform_;
 
 };
 

@@ -25,8 +25,8 @@ public:
 
 public:
 
-	CanvasObject* getParentObject() { return _parent_object; }
-	const CanvasObject* getParentObject() const { return _parent_object; }
+	CanvasObject* getParentObject() { return parent_object_; }
+	const CanvasObject* getParentObject() const { return parent_object_; }
 
 public:
 
@@ -35,8 +35,8 @@ public:
 	virtual void render() = 0;
 	virtual void setOpacity(float opacity) {}
 
-	virtual void setVisible(bool visible) { _visible = visible; }
-	virtual bool isVisible() const { return _visible; } 
+	virtual void setVisible(bool visible) { visible_ = visible; }
+	virtual bool isVisible() const { return visible_; } 
 
 	virtual Eigen::Vector2f getSize() const { return Eigen::Vector2f(0.0f,0.0f); }
 
@@ -50,8 +50,8 @@ protected:
 
 private:
 
-	CanvasObject* _parent_object = nullptr;
-	bool _visible = true;
+	CanvasObject* parent_object_ = nullptr;
+	bool visible_ = true;
 
 };
 

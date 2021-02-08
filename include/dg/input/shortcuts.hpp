@@ -47,10 +47,10 @@ private:
 		int pos;
 	};
 
-	std::list<Shortcut> _shortcuts;
-	KeySequenceSimKeys _pressed_keys;
+	std::list<Shortcut> shortcuts_;
+	KeySequenceSimKeys pressed_keys_;
 
-	std::list<Candidate> _candidates;
+	std::list<Candidate> candidates_;
 
 };
 

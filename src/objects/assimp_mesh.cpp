@@ -110,13 +110,13 @@ void AssimpMesh::Pimpl::loadSubMesh(const aiMesh* m, const aiMatrix4x4& transfor
 
     q->begin(material, dg::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
-    bool useNormals = false;
+    bool use_normals = false;
     if(m->mNormals!=nullptr)
-        useNormals = true;
+        use_normals = true;
 
-    bool useColor = false;
+    bool use_color = false;
     if(m->mColors[0])
-        useColor = true;
+        use_color = true;
 
     // fill in the vertex data
     for(size_t i=0; i<m->mNumVertices; ++i)
@@ -132,7 +132,7 @@ void AssimpMesh::Pimpl::loadSubMesh(const aiMesh* m, const aiMatrix4x4& transfor
         }
         }*/
 
-        if(useNormals)
+        if(use_normals)
         {
             aiVector3D n = transform3 * m->mNormals[i];
             n.Normalize();
@@ -140,7 +140,7 @@ void AssimpMesh::Pimpl::loadSubMesh(const aiMesh* m, const aiMatrix4x4& transfor
         }
 
 
-        if(useColor)
+        if(use_color)
         {
             if(m->mColors[0]) {
                 q->color(Color(m->mColors[0][i].r,
@@ -199,7 +199,7 @@ void AssimpMesh::Pimpl::setOpacity(float opacity)
 
 AssimpMesh::AssimpMesh(SceneManager* manager, IMaterial::Ptr material) : ManualObject(manager)
 {
-    d.reset(new Pimpl(this, manager, material));
+    d_.reset(new Pimpl(this, manager, material));
 }
 
 AssimpMesh::~AssimpMesh()
@@ -210,12 +210,12 @@ AssimpMesh::~AssimpMesh()
 void AssimpMesh::load(const std::string& filename)
 {
     clear();
-    d->loadMesh(filename);
+    d_->loadMesh(filename);
 }
 
 void AssimpMesh::setOpacity(float opacity)
 {
-    d->setOpacity(opacity);
+    d_->setOpacity(opacity);
 }
 
 

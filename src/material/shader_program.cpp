@@ -15,17 +15,17 @@ void ShaderProgram::setShaders(IRenderDevice* device, const std::string& name,
                                const std::string& vs_code, const std::string& ps_code,
                                const MacroDefinitions& macros)
 {
-	ShaderCreateInfo shaderInfo;
-	shaderInfo.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
+	ShaderCreateInfo shader_info;
+	shader_info.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
 
 	// OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
-	shaderInfo.UseCombinedTextureSamplers = true;
+	shader_info.UseCombinedTextureSamplers = true;
 
 	// Create a vertex shader
-	shaderInfo.Desc.ShaderType = SHADER_TYPE_VERTEX;
-	shaderInfo.EntryPoint      = "main";
-	shaderInfo.Desc.Name       = (name + "_vs").c_str();
-	shaderInfo.Source          = vs_code.c_str();
+	shader_info.Desc.ShaderType = SHADER_TYPE_VERTEX;
+	shader_info.EntryPoint      = "main";
+	shader_info.Desc.Name       = (name + "_vs").c_str();
+	shader_info.Source          = vs_code.c_str();
 
 
     std::vector<ShaderMacro> macros_vec;
@@ -35,29 +35,29 @@ void ShaderProgram::setShaders(IRenderDevice* device, const std::string& name,
             macros_vec.push_back(ShaderMacro(p.first.c_str(),p.second.c_str()));
         macros_vec.push_back(ShaderMacro(nullptr,nullptr));
 
-        shaderInfo.Macros = macros_vec.data();
+        shader_info.Macros = macros_vec.data();
 	}
 
-	device->CreateShader(shaderInfo, &_vertex_shader);
+	device->CreateShader(shader_info, &vertex_shader_);
 
 	// Create a pixel shader
-	shaderInfo.Desc.ShaderType = SHADER_TYPE_PIXEL;
-	shaderInfo.EntryPoint      = "main";
-	shaderInfo.Desc.Name       = (name + "_ps").c_str();
-	shaderInfo.Source          = ps_code.c_str();
-	device->CreateShader(shaderInfo, &_pixel_shader);
+	shader_info.Desc.ShaderType = SHADER_TYPE_PIXEL;
+	shader_info.EntryPoint      = "main";
+	shader_info.Desc.Name       = (name + "_ps").c_str();
+	shader_info.Source          = ps_code.c_str();
+	device->CreateShader(shader_info, &pixel_shader_);
 }
 
 void ShaderProgram::bind(IPipelineState* pso)
 {
-	for(auto& p : _constants)
+	for(auto& p : constants_)
 	{
 		Constant& c = p.second;
 		pso->GetStaticVariableByName(c.shader_type, c.name.c_str())->Set(c.buffer);
 	}
 }
 
-void ShaderProgram::_addConstant(IRenderDevice* device, const ConstantDef& def)
+void ShaderProgram::addConstant(IRenderDevice* device, const ConstantDef& def)
 {
 	Constant constant(def);
 	BufferDesc desc;
@@ -68,7 +68,7 @@ void ShaderProgram::_addConstant(IRenderDevice* device, const ConstantDef& def)
 	desc.CPUAccessFlags = CPU_ACCESS_WRITE;
 	device->CreateBuffer(desc, nullptr, &constant.buffer);
 
-	_constants[constant.name] = constant;
+	constants_[constant.name] = constant;
 }
 
 }

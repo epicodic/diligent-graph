@@ -18,7 +18,7 @@ void BoxGeometry::buildPlane(int u, int v, int w, float udir, float vdir, float 
 
     Vector3 vector;
 
-    int idx0 = _positions.size();
+    int idx0 = positions_.size();
 
     // generate vertices, normals and uvs
     for ( int iy = 0; iy < grid_y1; iy++ ) 
@@ -32,15 +32,15 @@ void BoxGeometry::buildPlane(int u, int v, int w, float udir, float vdir, float 
             vector[ u ] = x * udir;
             vector[ v ] = y * vdir;
             vector[ w ] = depth_half;
-            _positions.push_back(vector);
+            positions_.push_back(vector);
 
             vector[ u ] = 0;
             vector[ v ] = 0;
             vector[ w ] = depth > 0 ? 1 : - 1;
-            _normals.push_back(vector);
+            normals_.push_back(vector);
 
             // uvs
-            _uvs.emplace_back(float(ix)/float(grid_x), 1.0f-(float(iy)/float(grid_y)) );
+            uvs_.emplace_back(float(ix)/float(grid_x), 1.0f-(float(iy)/float(grid_y)) );
         }
     }
 
@@ -58,13 +58,13 @@ void BoxGeometry::buildPlane(int u, int v, int w, float udir, float vdir, float 
             int d = idx0 + ( ix + 1 ) + grid_x1 * iy;
 
             // faces
-            _indices.push_back(a);
-            _indices.push_back(b);
-            _indices.push_back(d);
+            indices_.push_back(a);
+            indices_.push_back(b);
+            indices_.push_back(d);
 
-            _indices.push_back(b);
-            _indices.push_back(c);
-            _indices.push_back(d);
+            indices_.push_back(b);
+            indices_.push_back(c);
+            indices_.push_back(d);
         }
     }
 }
@@ -72,16 +72,16 @@ void BoxGeometry::buildPlane(int u, int v, int w, float udir, float vdir, float 
 
 BoxGeometry::BoxGeometry(const Params& p)
 {
-    _positions.clear();
-	_normals.clear();
-	_uvs.clear();
+    positions_.clear();
+	normals_.clear();
+	uvs_.clear();
 
-    buildPlane( 2, 1, 0, -1, -1, p.depth, p.height,  p.width,  p.depthSegments, p.heightSegments); // px
-    buildPlane( 2, 1, 0,  1, -1, p.depth, p.height, -p.width,  p.depthSegments, p.heightSegments); // nx
-    buildPlane( 0, 2, 1,  1,  1, p.width, p.depth,   p.height, p.widthSegments, p.depthSegments); // py
-    buildPlane( 0, 2, 1,  1, -1, p.width, p.depth,  -p.height, p.widthSegments, p.depthSegments); // ny
-    buildPlane( 0, 1, 2,  1, -1, p.width, p.height,  p.depth,  p.widthSegments, p.heightSegments); // pz
-    buildPlane( 0, 1, 2, -1, -1, p.width, p.height, -p.depth,  p.widthSegments, p.heightSegments); // nz
+    buildPlane( 2, 1, 0, -1, -1, p.depth, p.height,  p.width,  p.depth_segments, p.height_segments); // px
+    buildPlane( 2, 1, 0,  1, -1, p.depth, p.height, -p.width,  p.depth_segments, p.height_segments); // nx
+    buildPlane( 0, 2, 1,  1,  1, p.width, p.depth,   p.height, p.width_segments, p.depth_segments); // py
+    buildPlane( 0, 2, 1,  1, -1, p.width, p.depth,  -p.height, p.width_segments, p.depth_segments); // ny
+    buildPlane( 0, 1, 2,  1, -1, p.width, p.height,  p.depth,  p.width_segments, p.height_segments); // pz
+    buildPlane( 0, 1, 2, -1, -1, p.width, p.height, -p.depth,  p.width_segments, p.height_segments); // nz
 
 }
 

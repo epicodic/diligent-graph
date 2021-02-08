@@ -4,51 +4,51 @@ namespace dg {
 
 SphereGeometry::SphereGeometry(const Params& p, bool generate_normals, bool generate_uvs)
 {
-    int num = (p.heightSegments + 1) * (p.widthSegments + 1);
+    int num = (p.height_segments + 1) * (p.width_segments + 1);
 
-	_positions.resize(num);
+	positions_.resize(num);
 
 	if(generate_normals)
-		_normals.resize(num);
+		normals_.resize(num);
 
 	if(generate_uvs)
-		_uvs.resize(num);
+		uvs_.resize(num);
 
-	float phi_length = p.phiEnd - p.phiStart;
-	float theta_length = p.thetaEnd - p.thetaStart;
+	float phi_length = p.phi_end - p.phi_start;
+	float theta_length = p.theta_end - p.theta_start;
 
 	int idx = 0;
-	for (unsigned iy = 0; iy <= p.heightSegments; iy++)
+	for (unsigned iy = 0; iy <= p.height_segments; iy++)
 	{
 
-		float v = (float)iy / p.heightSegments;
+		float v = (float)iy / p.height_segments;
 
-		for (unsigned ix = 0; ix <= p.widthSegments; ix++, idx++ )
+		for (unsigned ix = 0; ix <= p.width_segments; ix++, idx++ )
 		{
 
-			float u = (float)ix / p.widthSegments;
-			float x = - p.radius * std::cos( p.phiStart   + u * phi_length ) * std::sin( p.thetaStart + v * theta_length );
-			float y =   p.radius * std::sin( p.phiStart   + u * phi_length ) * std::sin( p.thetaStart + v * theta_length );
-			float z =   p.radius * std::cos( p.thetaStart + v * theta_length );
+			float u = (float)ix / p.width_segments;
+			float x = - p.radius * std::cos( p.phi_start   + u * phi_length ) * std::sin( p.theta_start + v * theta_length );
+			float y =   p.radius * std::sin( p.phi_start   + u * phi_length ) * std::sin( p.theta_start + v * theta_length );
+			float z =   p.radius * std::cos( p.theta_start + v * theta_length );
 
-			_positions[idx] = {x, y, z};
+			positions_[idx] = {x, y, z};
 
 			if(generate_normals)
-				_normals[idx] = _positions[idx].normalized();
+				normals_[idx] = positions_[idx].normalized();
 
 			if(generate_uvs)
-				_uvs[idx] << u, v;
+				uvs_[idx] << u, v;
 
 		}
 	}
 
 	// generate indices
-	for ( int iy = 0; iy < p.heightSegments; iy++ )
+	for ( int iy = 0; iy < p.height_segments; iy++ )
 	{
 
-		for ( int ix = 0; ix < p.widthSegments; ix++ )
+		for ( int ix = 0; ix < p.width_segments; ix++ )
 		{
-			int width = p.widthSegments+1;
+			int width = p.width_segments+1;
 
 
 			int a = (iy  ) * width + (ix+1);
@@ -56,18 +56,18 @@ SphereGeometry::SphereGeometry(const Params& p, bool generate_normals, bool gene
 			int c = (iy+1) * width + (ix  );
 			int d = (iy+1) * width + (ix+1);
 
-			if ( iy != 0 || p.thetaStart > 0 )
+			if ( iy != 0 || p.theta_start > 0 )
 			{
-				_indices.push_back(a);
-				_indices.push_back(d);
-				_indices.push_back(b);
+				indices_.push_back(a);
+				indices_.push_back(d);
+				indices_.push_back(b);
 			}
 
-			if ( iy != p.heightSegments-1 || p.thetaEnd < M_PI )
+			if ( iy != p.height_segments-1 || p.theta_end < M_PI )
 			{
-				_indices.push_back(b);
-				_indices.push_back(d);
-				_indices.push_back(c);
+				indices_.push_back(b);
+				indices_.push_back(d);
+				indices_.push_back(c);
 			}
 		}
 	}

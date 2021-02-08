@@ -17,50 +17,50 @@ GeometryObject::GeometryObject(SceneManager* manager, const IGeometry& geometry,
 	const std::vector<Vector2f>& uvs = geometry.getUVs();
 	const std::vector<std::uint32_t>& indices = geometry.getIndices();
 
-	std::size_t vertexSize = 0;
+	std::size_t vertex_size = 0;
 
-	std::size_t vertexCount = std::max(positions.size(), normals.size());
+	std::size_t vertex_count = std::max(positions.size(), normals.size());
 
 	if(!positions.empty())
 	{
-		if(positions.size()!=vertexCount)
+		if(positions.size()!=vertex_count)
 			DG_THROW("Number of positions does not match count of other items");
 
-		_inputLayout.push_back(LayoutElement{0, 0, 3, VT_FLOAT32, false});
-		vertexSize += 3;
+		input_layout.push_back(LayoutElement{0, 0, 3, VT_FLOAT32, false});
+		vertex_size += 3;
 	}
 
 	if(!normals.empty())
 	{
-		if(normals.size()!=vertexCount)
+		if(normals.size()!=vertex_count)
 			DG_THROW("Number of normals does not match count of other items");
 
-		_inputLayout.push_back(LayoutElement{1, 0, 3, VT_FLOAT32, false});
-		vertexSize += 3;
+		input_layout.push_back(LayoutElement{1, 0, 3, VT_FLOAT32, false});
+		vertex_size += 3;
 	}
 
 	if(!colors.empty())
 	{
-		if(colors.size()!=vertexCount)
+		if(colors.size()!=vertex_count)
 			DG_THROW("Number of colors does not match count of other items");
 
-		_inputLayout.push_back(LayoutElement{2, 0, 4, VT_FLOAT32, false});
-		vertexSize += 4;
+		input_layout.push_back(LayoutElement{2, 0, 4, VT_FLOAT32, false});
+		vertex_size += 4;
 	}
 
 	if(!uvs.empty())
 	{
-		if(uvs.size()!=vertexCount)
+		if(uvs.size()!=vertex_count)
 			DG_THROW("Number of uv texture coordinates does not match count of other items");
 
-		_inputLayout.push_back(LayoutElement{3, 0, 2, VT_FLOAT32, false});
-		vertexSize += 2;
+		input_layout.push_back(LayoutElement{3, 0, 2, VT_FLOAT32, false});
+		vertex_size += 2;
 	}
 	
-	std::vector<float> vbuf(vertexSize*vertexCount);
+	std::vector<float> vbuf(vertex_size*vertex_count);
 
 	std::size_t idx=0;
-	for(std::size_t i=0; i<vertexCount; ++i)
+	for(std::size_t i=0; i<vertex_count; ++i)
 	{
 		if(!positions.empty())
 		{
@@ -90,39 +90,39 @@ GeometryObject::GeometryObject(SceneManager* manager, const IGeometry& geometry,
 		}
 	}
 
-	BufferDesc VertBuffDesc;
-	VertBuffDesc.Name          = "GeometryObject vertex buffer";
-	VertBuffDesc.Usage         = USAGE_STATIC;
-	VertBuffDesc.BindFlags     = BIND_VERTEX_BUFFER;
-	VertBuffDesc.uiSizeInBytes = vertexSize*vertexCount*sizeof(float);
+	BufferDesc vert_buff_desc;
+	vert_buff_desc.Name          = "GeometryObject vertex buffer";
+	vert_buff_desc.Usage         = USAGE_STATIC;
+	vert_buff_desc.BindFlags     = BIND_VERTEX_BUFFER;
+	vert_buff_desc.uiSizeInBytes = vertex_size*vertex_count*sizeof(float);
 
-	BufferData VBData;
-	VBData.pData    = vbuf.data();
-	VBData.DataSize = VertBuffDesc.uiSizeInBytes;
-	manager->device()->CreateBuffer(VertBuffDesc, &VBData, &_vertexBuffer);
+	BufferData vb_data;
+	vb_data.pData    = vbuf.data();
+	vb_data.DataSize = vert_buff_desc.uiSizeInBytes;
+	manager->device()->CreateBuffer(vert_buff_desc, &vb_data, &vertex_buffer);
 
 
-	_indexCount = indices.size();
+	index_count = indices.size();
 
-	BufferDesc IndBuffDesc;
-	IndBuffDesc.Name          = "GeometryObject index buffer";
-	IndBuffDesc.Usage         = USAGE_STATIC;
-	IndBuffDesc.BindFlags     = BIND_INDEX_BUFFER;
-	IndBuffDesc.uiSizeInBytes = _indexCount*sizeof(std::uint32_t);
-	BufferData IBData;
-	IBData.pData    = indices.data();
-	IBData.DataSize = IndBuffDesc.uiSizeInBytes;
-	manager->device()->CreateBuffer(IndBuffDesc, &IBData, &_indexBuffer);
+	BufferDesc ind_buff_desc;
+	ind_buff_desc.Name          = "GeometryObject index buffer";
+	ind_buff_desc.Usage         = USAGE_STATIC;
+	ind_buff_desc.BindFlags     = BIND_INDEX_BUFFER;
+	ind_buff_desc.uiSizeInBytes = index_count*sizeof(std::uint32_t);
+	BufferData ib_data;
+	ib_data.pData    = indices.data();
+	ib_data.DataSize = ind_buff_desc.uiSizeInBytes;
+	manager->device()->CreateBuffer(ind_buff_desc, &ib_data, &index_buffer);
 
-	_rasterizerDesc.CullMode = CULL_MODE_BACK;
-	_rasterizerDesc.FrontCounterClockwise = true;
+	rasterizer_desc.CullMode = CULL_MODE_BACK;
+	rasterizer_desc.FrontCounterClockwise = true;
 
-	_primitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	primitive_topology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
 
 void GeometryObject::setMaterial(IMaterial::Ptr m)
 {
-	_material = m;
+	material = m;
 	setPsoNeedsUpdate();
 }
 

@@ -25,7 +25,7 @@ public:
 
 protected:
 	friend class SceneManager;
-	std::shared_ptr<ShaderProgram> _shader_program;
+	std::shared_ptr<ShaderProgram> shader_program_;
 };
 
 class BaseMaterial : public IMaterial

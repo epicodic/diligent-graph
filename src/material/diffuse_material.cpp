@@ -11,7 +11,7 @@ struct DiffuseMaterial::MaterialVS
 	Color color;
 };
 
-static const char* DiffuseMaterialVS =
+static const char* g_diffuse_material_vs =
 DG_COMMON_CONSTANTS_VS_CODE
 R"===(
 cbuffer Material
@@ -53,7 +53,7 @@ void main(in  VSInput VSIn,
 )===";
 
 
-static const char* DiffuseMaterialPS =
+static const char* g_diffuse_material_ps =
 R"===(
 struct PSInput 
 { 
@@ -73,7 +73,7 @@ void main(in  PSInput  PSIn,
 }
 )===";
 
-std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> DiffuseMaterial::_shared_shader_programs;
+std::map<IRenderDevice*, std::weak_ptr<ShaderProgram>> DiffuseMaterial::shared_shader_programs;
 
 DiffuseMaterial::DiffuseMaterial(IRenderDevice* device)
 {
@@ -82,18 +82,18 @@ DiffuseMaterial::DiffuseMaterial(IRenderDevice* device)
 
 void DiffuseMaterial::initialize(IRenderDevice* device)
 {
-	std::weak_ptr<ShaderProgram>& shared_shader_program = _shared_shader_programs[device];
+	std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs[device];
 
 	if(shared_shader_program.expired())
 	{
-		_shader_program = std::make_shared<ShaderProgram>();
-		_shader_program->setShaders(device, "DiffuseMaterial_shader", DiffuseMaterialVS, DiffuseMaterialPS);
-		_shader_program->addConstant<CommonConstantsVS>(device, "CommonConstantsVS");
-		_shader_program->addConstant<MaterialVS>(device, "Material");
-		shared_shader_program = _shader_program;
+		shader_program_ = std::make_shared<ShaderProgram>();
+		shader_program_->setShaders(device, "DiffuseMaterial_shader", g_diffuse_material_vs, g_diffuse_material_ps);
+		shader_program_->addConstant<CommonConstantsVS>(device, "CommonConstantsVS");
+		shader_program_->addConstant<MaterialVS>(device, "Material");
+		shared_shader_program = shader_program_;
 	}
 	else
-		_shader_program = shared_shader_program.lock();
+		shader_program_ = shared_shader_program.lock();
 
 }
 
@@ -101,15 +101,15 @@ void DiffuseMaterial::setupPSODesc(PipelineStateDesc& desc)
 {
 	DG_ASSERT(_shader_program);
 
-	desc.GraphicsPipeline.pVS = _shader_program->getVertexShader();
-	desc.GraphicsPipeline.pPS = _shader_program->getPixelShader();
+	desc.GraphicsPipeline.pVS = shader_program_->getVertexShader();
+	desc.GraphicsPipeline.pPS = shader_program_->getPixelShader();
 }
 
 void DiffuseMaterial::bindPSO(IPipelineState* pso)
 {
 	DG_ASSERT(_shader_program);
 
-	_shader_program->bind(pso);
+	shader_program_->bind(pso);
 }
 
 void DiffuseMaterial::bindSRB(IShaderResourceBinding* srb)
@@ -119,7 +119,7 @@ void DiffuseMaterial::bindSRB(IShaderResourceBinding* srb)
 
 void DiffuseMaterial::prepareForRender(IDeviceContext* context)
 {
-	auto material = _shader_program->mapConstant<MaterialVS>(context, "Material");
+	auto material = shader_program_->mapConstant<MaterialVS>(context, "Material");
 	material->color = color;
 }
 

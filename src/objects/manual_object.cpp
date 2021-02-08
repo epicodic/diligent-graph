@@ -12,7 +12,7 @@ namespace dg {
 
 
 ManualObject::ManualObject(SceneManager* manager) : Object(type_id<ManualObject>()),
-		_manager(manager)
+		manager_(manager)
 {
 }
 
@@ -24,7 +24,7 @@ ManualObject::~ManualObject()
 
 void ManualObject::clear()
 {
-	_sections.clear();
+	sections_.clear();
 }
 
 
@@ -35,25 +35,25 @@ void ManualObject::begin(IMaterial::Ptr material, PRIMITIVE_TOPOLOGY topology)
 
 void ManualObject::begin(IMaterial::Ptr material, DepthStencilStateDesc depthStencilDesc, PRIMITIVE_TOPOLOGY topology)
 {
-	_currentSection.reset(new Section);
-	_currentSection->_primitiveTopology = topology;
-	_currentSection->_material = material;
-	_currentSection->_render_order = _render_order;
-	_currentSection->_depthStencilDesc = depthStencilDesc;
+	currentSection_.reset(new Section);
+	currentSection_->primitive_topology = topology;
+	currentSection_->material = material;
+	currentSection_->render_order = render_order_;
+	currentSection_->depth_stencil_desc = depthStencilDesc;
 
-	_currentSection->setPsoNeedsUpdate();
+	currentSection_->setPsoNeedsUpdate();
 
-	_vertexSize = 0;
-	_vertexCount = 0;
-	_buf_ptr = _buf.data();
-	_indexCount = 0;
+	vertexSize_ = 0;
+	vertexCount_ = 0;
+	buf_ptr_ = buf_.data();
+	indexCount_ = 0;
 
 }
 
 void ManualObject::end()
 {
 	if(getNode())
-		getNode()->attach(_currentSection.get());
+		getNode()->attach(currentSection_.get());
 
 
 	//std::cout << "END: " << _buf.size() << ", " << _vertexSize << ", " << _vertexCount << std::endl;
@@ -61,90 +61,90 @@ void ManualObject::end()
 	//    std::cout << d << std::endl;
 
 
-    BufferDesc VertBuffDesc;
-    VertBuffDesc.Name          = "ManualObject vertex buffer";
-    VertBuffDesc.Usage         = USAGE_STATIC;
-    VertBuffDesc.BindFlags     = BIND_VERTEX_BUFFER;
-    VertBuffDesc.uiSizeInBytes = _vertexSize*_vertexCount*sizeof(float);
+    BufferDesc vert_buff_desc;
+    vert_buff_desc.Name          = "ManualObject vertex buffer";
+    vert_buff_desc.Usage         = USAGE_STATIC;
+    vert_buff_desc.BindFlags     = BIND_VERTEX_BUFFER;
+    vert_buff_desc.uiSizeInBytes = vertexSize_*vertexCount_*sizeof(float);
 
-    BufferData VBData;
-    VBData.pData    = _buf.data();
-    VBData.DataSize = VertBuffDesc.uiSizeInBytes;
-    _manager->device()->CreateBuffer(VertBuffDesc, &VBData, &_currentSection->_vertexBuffer);
+    BufferData vb_data;
+    vb_data.pData    = buf_.data();
+    vb_data.DataSize = vert_buff_desc.uiSizeInBytes;
+    manager_->device()->CreateBuffer(vert_buff_desc, &vb_data, &currentSection_->vertex_buffer);
 
-    BufferDesc IndBuffDesc;
-	IndBuffDesc.Name          = "ManualObject index buffer";
-	IndBuffDesc.Usage         = USAGE_STATIC;
-	IndBuffDesc.BindFlags     = BIND_INDEX_BUFFER;
-	IndBuffDesc.uiSizeInBytes = _indexCount*sizeof(std::uint32_t);
-	BufferData IBData;
-	IBData.pData    = _idxbuf.data();
-	IBData.DataSize = IndBuffDesc.uiSizeInBytes;
-	_manager->device()->CreateBuffer(IndBuffDesc, &IBData, &_currentSection->_indexBuffer);
+    BufferDesc ind_buff_desc;
+	ind_buff_desc.Name          = "ManualObject index buffer";
+	ind_buff_desc.Usage         = USAGE_STATIC;
+	ind_buff_desc.BindFlags     = BIND_INDEX_BUFFER;
+	ind_buff_desc.uiSizeInBytes = indexCount_*sizeof(std::uint32_t);
+	BufferData ib_data;
+	ib_data.pData    = idxbuf_.data();
+	ib_data.DataSize = ind_buff_desc.uiSizeInBytes;
+	manager_->device()->CreateBuffer(ind_buff_desc, &ib_data, &currentSection_->index_buffer);
 
-	_currentSection->_indexCount = _indexCount;
+	currentSection_->index_count = indexCount_;
 	//std::cout << "VERTEXCOUNT: " << _vertexCount << std::endl;
 	//std::cout << "INDEXCOUNT: " << _indexCount << std::endl;
 
 	// TODO:!!!
-	_currentSection->_rasterizerDesc.CullMode = CULL_MODE_NONE;
-	_currentSection->_rasterizerDesc.FrontCounterClockwise = true;
+	currentSection_->rasterizer_desc.CullMode = CULL_MODE_NONE;
+	currentSection_->rasterizer_desc.FrontCounterClockwise = true;
 
 	//_currentSection->_depthStencilDesc.DepthEnable = true;
 	//_currentSection->_depthStencilDesc.DepthWriteEnable = true;
 
-	_sections.push_back(std::move(_currentSection));
+	sections_.push_back(std::move(currentSection_));
 }
 
 void ManualObject::position(float x, float y, float z)
 {
-    if (!_currentSection)
+    if (!currentSection_)
         DG_THROW("You must call begin() before position()");
 
-    if(_vertexCount==0)
+    if(vertexCount_==0)
     {
-    	_currentSection->_inputLayout.push_back(LayoutElement{0, 0, 3, VT_FLOAT32, false});
-    	_vertexSize += 3;
+    	currentSection_->input_layout.push_back(LayoutElement{0, 0, 3, VT_FLOAT32, false});
+    	vertexSize_ += 3;
     }
 
     addVertex();
 
-    *_buf_ptr++ = x;
-    *_buf_ptr++ = y;
-    *_buf_ptr++ = z;
+    *buf_ptr_++ = x;
+    *buf_ptr_++ = y;
+    *buf_ptr_++ = z;
 }
 
 void ManualObject::normal(float x, float y, float z)
 {
-    if (!_currentSection)
+    if (!currentSection_)
         DG_THROW("You must call begin() before normal()");
 
-    if(_vertexCount==1)
+    if(vertexCount_==1)
     {
-    	_currentSection->_inputLayout.push_back(LayoutElement{1, 0, 3, VT_FLOAT32, false});
-    	_vertexSize += 3;
+    	currentSection_->input_layout.push_back(LayoutElement{1, 0, 3, VT_FLOAT32, false});
+    	vertexSize_ += 3;
     }
 
-    *_buf_ptr++ = x;
-    *_buf_ptr++ = y;
-    *_buf_ptr++ = z;
+    *buf_ptr_++ = x;
+    *buf_ptr_++ = y;
+    *buf_ptr_++ = z;
 }
 
 void ManualObject::color(const Color& col)
 {
-    if (!_currentSection)
+    if (!currentSection_)
         DG_THROW("You must call begin() before color()");
 
-    if(_vertexCount==1)
+    if(vertexCount_==1)
     {
-        _currentSection->_inputLayout.push_back(LayoutElement{2, 0, 4, VT_FLOAT32, false});
-        _vertexSize += 4;
+        currentSection_->input_layout.push_back(LayoutElement{2, 0, 4, VT_FLOAT32, false});
+        vertexSize_ += 4;
     }
 
-    *_buf_ptr++ = col.r;
-    *_buf_ptr++ = col.g;
-    *_buf_ptr++ = col.b;
-    *_buf_ptr++ = col.a;
+    *buf_ptr_++ = col.r;
+    *buf_ptr_++ = col.g;
+    *buf_ptr_++ = col.b;
+    *buf_ptr_++ = col.a;
 
 }
 
@@ -155,26 +155,26 @@ void ManualObject::color(float r, float g, float b, float a)
 
 void ManualObject::textureCoord(float u, float v)
 {
-    if (!_currentSection)
+    if (!currentSection_)
         DG_THROW("You must call begin() before textureCoord()");
 
-    if(_vertexCount==1)
+    if(vertexCount_==1)
     {
-        _currentSection->_inputLayout.push_back(LayoutElement{3, 0, 2, VT_FLOAT32, false});
-        _vertexSize += 2;
+        currentSection_->input_layout.push_back(LayoutElement{3, 0, 2, VT_FLOAT32, false});
+        vertexSize_ += 2;
     }
 
-    *_buf_ptr++ = u;
-    *_buf_ptr++ = v;
+    *buf_ptr_++ = u;
+    *buf_ptr_++ = v;
 }
 
 void ManualObject::index(std::uint32_t idx)
 {
-	_indexCount++;
-	if(_indexCount > _idxbuf.size())
-		_idxbuf.resize(std::max<std::size_t>(_idxbuf.size()*2, 16));
+	indexCount_++;
+	if(indexCount_ > idxbuf_.size())
+		idxbuf_.resize(std::max<std::size_t>(idxbuf_.size()*2, 16));
 
-	_idxbuf[_indexCount-1] = idx;
+	idxbuf_[indexCount_-1] = idx;
 }
 
 void ManualObject::triangle(std::uint32_t i1, std::uint32_t i2, std::uint32_t i3)
@@ -187,30 +187,30 @@ void ManualObject::triangle(std::uint32_t i1, std::uint32_t i2, std::uint32_t i3
 void ManualObject::onAttached(Node* node)
 {
 	// attach all section objects
-	for(auto& s : _sections)
+	for(auto& s : sections_)
 		node->attach(s.get());
 }
 
 void ManualObject::onDetached(Node* node)
 {
 	// detach all section objects
-	for(auto& s : _sections)
+	for(auto& s : sections_)
 		node->detach(s.get());
 }
 
 void ManualObject::addVertex()
 {
-	++_vertexCount;
+	++vertexCount_;
 
-	std::size_t size = _vertexCount*_vertexSize;
-	if(size > _buf.size())
+	std::size_t size = vertexCount_*vertexSize_;
+	if(size > buf_.size())
 	{
 		//< "RESIZE before: " << _buf.size() << std::endl;
-		_buf.resize(std::max<std::size_t>(_buf.size()*2, 128));
+		buf_.resize(std::max<std::size_t>(buf_.size()*2, 128));
 		//std::cout << "RESIZE after: " << _buf.size() << std::endl;
 	}
 
-	_buf_ptr = _buf.data() + (_vertexCount-1) * _vertexSize;
+	buf_ptr_ = buf_.data() + (vertexCount_-1) * vertexSize_;
 }
 
 }

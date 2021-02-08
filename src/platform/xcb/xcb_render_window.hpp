@@ -47,37 +47,37 @@ protected:
 
 		CARDINAL,
 
-		NumAtoms
+		NUM_ATOMS
 	};
 
     void initializeAtoms(xcb_connection_t *connection);
 
-    inline xcb_atom_t atom(Atom atom) const { return _atoms[atom]; }
+    inline xcb_atom_t atom(Atom atom) const { return atoms_[atom]; }
 
     void setNetWmState(bool set, xcb_atom_t one, xcb_atom_t two = XCB_ATOM_NONE);
     bool getNetWmState(xcb_atom_t one) const;
 
 protected:
 
-    Display* _display;
-    xcb_screen_t* _screen = nullptr;
-	xcb_connection_t* _connection = nullptr;
-	xcb_window_t _window = 0;
-	xcb_window_t _screen_root = 0;
+    Display* display_;
+    xcb_screen_t* screen_ = nullptr;
+	xcb_connection_t* connection_ = nullptr;
+	xcb_window_t window_ = 0;
+	xcb_window_t screen_root_ = 0;
 
-	int _width = 0, _height = 0;
+	int width_ = 0, height_ = 0;
 
-	std::unique_ptr<XCBKeyboard> _keyboard;
-	int _mouseButtonState = 0;
+	std::unique_ptr<XCBKeyboard> keyboard_;
+	int mouseButtonState_ = 0;
 
-	xcb_atom_t _atoms[NumAtoms];
+	xcb_atom_t atoms_[NUM_ATOMS];
 
-	bool _destroyed = false;
+	bool destroyed_ = false;
 
 private:
 
-	std::unordered_map<int,xcb_cursor_t> _cursors;
-	Cursor _current_cursor = Cursor::Arrow;
+	std::unordered_map<int,xcb_cursor_t> cursors_;
+	Cursor current_cursor_ = Cursor::Arrow;
 
 };
 

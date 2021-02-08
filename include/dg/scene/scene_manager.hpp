@@ -56,13 +56,13 @@ public:
 
 	struct Matrices
 	{
-		Matrix4 worldViewProj;
-		Matrix4 worldView;
+		Matrix4 world_view_proj;
+		Matrix4 world_view;
 
-		Matrix4 viewProj;
+		Matrix4 view_proj;
 		Matrix4 view;
 		Matrix4 proj;
-		Vector3 cameraWorldPosition;
+		Vector3 camera_world_position;
 	};
 
 
@@ -73,12 +73,12 @@ public:
 
 
 	// the following values are updated and valid during render() (i.e. in the render() methods of the renderables)
-	const Matrix4& getWorldViewProj() const { return current_render_matrices_->worldViewProj; }
-	const Matrix4& getWorldView() const { return current_render_matrices_->worldView; }
+	const Matrix4& getWorldViewProj() const { return current_render_matrices_->world_view_proj; }
+	const Matrix4& getWorldView() const { return current_render_matrices_->world_view; }
 	const Matrix4& getView() const { return current_render_matrices_->view; }
-	const Matrix4& getViewProj() const { return current_render_matrices_->viewProj; }
+	const Matrix4& getViewProj() const { return current_render_matrices_->view_proj; }
 	const Matrix4& getProj() const { return current_render_matrices_->proj; }
-	const Vector3& getCameraWorldPosition() const { return current_render_matrices_->cameraWorldPosition; }
+	const Vector3& getCameraWorldPosition() const { return current_render_matrices_->camera_world_position; }
 
 	const SceneManager::Matrices& getRenderMatrices() { return *current_render_matrices_; }
 

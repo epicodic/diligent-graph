@@ -16,49 +16,49 @@ public:
 	Camera() : Object(type_id<Camera>()) {}
 
 	void setFov(float fov) {
-		_frustum.fov = fov;
-		_proj_matrix_dirty = true;
+		frustum_.fov = fov;
+		proj_matrix_dirty_ = true;
 	}
 
 	void setNearPlane(float near) {
-		_frustum.near_plane = near;
-		_proj_matrix_dirty = true;
+		frustum_.near_plane = near;
+		proj_matrix_dirty_ = true;
 	}
 
 	void setFarPlane(float far) {
-		_frustum.far_plane = far;
-		_proj_matrix_dirty = true;
+		frustum_.far_plane = far;
+		proj_matrix_dirty_ = true;
 	}
 
 	void setAspect(float aspect) {
-		_frustum.aspect = aspect;
-		_proj_matrix_dirty = true;
+		frustum_.aspect = aspect;
+		proj_matrix_dirty_ = true;
 	}
 
 	void setPrincipal(const Eigen::Vector2f& principal) {
-		_frustum.principal = principal;
-		_proj_matrix_dirty = true;
+		frustum_.principal = principal;
+		proj_matrix_dirty_ = true;
 	}
 
 	const Frustum& getFrustum() const
 	{
-		return _frustum;
+		return frustum_;
 	}
 
 public:
 
 	const Matrix4f& getProjectionMatrix() const {
-		if(_proj_matrix_dirty)
-			_proj_matrix = _frustum.computeProjectionMatrix();
-		return _proj_matrix;
+		if(proj_matrix_dirty_)
+			proj_matrix_ = frustum_.computeProjectionMatrix();
+		return proj_matrix_;
 	}
 
 private:
 
-	Frustum _frustum;
+	Frustum frustum_;
 
-	bool _proj_matrix_dirty = true;
-	mutable Matrix4f _proj_matrix;
+	bool proj_matrix_dirty_ = true;
+	mutable Matrix4f proj_matrix_;
 
 
 };

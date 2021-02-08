@@ -141,11 +141,11 @@ protected:
 protected:
 
 	std::unique_ptr<RenderWindowPrivate> d;
-	Shortcuts _shortcuts;
+	Shortcuts shortcuts_;
 
 private:
 
-	RenderWindowListener* _listener;
+	RenderWindowListener* listener_;
 
 };
 

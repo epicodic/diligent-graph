@@ -112,7 +112,7 @@ public:
 	{
 		MethodInvoker<R,Args...>* invoker = new MethodInvoker<R,Args...>();
 		invoker->fn = [This,fn](Args... args)->R { return (This->*fn)(args...); };
-		_methods[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker); 
+		methods_[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker); 
 
 	}
 
@@ -121,7 +121,7 @@ public:
 	{
 		MethodInvoker<R,Args...>* invoker = new MethodInvoker<R,Args...>();
 		invoker->fn = fn;
-		_methods[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker);
+		methods_[MethodKey(name, sizeof...(Args))] = IMethodInvoker::Ptr(invoker);
 	}
 
 	template<typename Lambda>
@@ -141,19 +141,19 @@ public:
 		std::vector<std::string> params;
 		params = split(stream, ',');
 
-		auto it = _methods.find(MethodKey(method_name, params.size()));
-		if(it==_methods.end())
+		auto it = methods_.find(MethodKey(method_name, params.size()));
+		if(it==methods_.end())
 			DG_THROW("So such method found: " + method_name + " (" + std::to_string(params.size()) + " parameters)");
 
 		return it->second->call(params);
 	}
 
 
-	bool empty() const { return _methods.empty(); }
+	bool empty() const { return methods_.empty(); }
 
 private:
 
-	std::map<MethodKey, IMethodInvoker::Ptr> _methods;
+	std::map<MethodKey, IMethodInvoker::Ptr> methods_;
 
 };
 

@@ -42,16 +42,16 @@ struct CanvasObject::Pimpl
 	SceneManager::Matrices matrices;
 	unsigned int stencil_id = 0;
 
-	bool _overlay_mode = false;
-	float _overlay_width = 1.0f;
-	float _overlay_x = 0.0f;
-	float _overlay_y = 0.0f;
-	bool _overlay_align_right = false;
-	bool _overlay_align_bottom = false;
+	bool overlay_mode = false;
+	float overlay_width = 1.0f;
+	float overlay_x = 0.0f;
+	float overlay_y = 0.0f;
+	bool overlay_align_right = false;
+	bool overlay_align_bottom = false;
 	//float _height;
 };
 
-ImDrawList* _draw_list = nullptr; //( TODO
+ImDrawList* g_draw_list = nullptr; //( TODO
 
 CanvasObject::CanvasObject(SceneManager* manager)
 {
@@ -91,36 +91,36 @@ CanvasObject::~CanvasObject()
 
 void CanvasObject::setOverlayMode(bool overlay_mode)
 {
-	d->_overlay_mode = overlay_mode;
+	d->overlay_mode = overlay_mode;
 }
 
 bool CanvasObject::isOverlayMode() const
 {
-	return d->_overlay_mode;
+	return d->overlay_mode;
 }
 
 void CanvasObject::setOverlayWidth(float width)
 {
-	d->_overlay_width = width;
+	d->overlay_width = width;
 }
 
 void CanvasObject::setOverlayPosition(float x, float y)
 {
-	d->_overlay_x = x;
-	d->_overlay_y = y;
+	d->overlay_x = x;
+	d->overlay_y = y;
 }
 
 void CanvasObject::setOverlayAlignment(bool align_right, bool align_bottom)
 {
-	d->_overlay_align_right = align_right;
-	d->_overlay_align_bottom = align_bottom;
+	d->overlay_align_right = align_right;
+	d->overlay_align_bottom = align_bottom;
 }
 
 void CanvasObject::render(SceneManager* manager)
 {
 	d->matrices = manager->getRenderMatrices();
 
-	if(d->_overlay_mode)
+	if(d->overlay_mode)
 	{
 		// get the overall size in px
 		Eigen::Vector2f size(1.0,1.0);
@@ -129,40 +129,40 @@ void CanvasObject::render(SceneManager* manager)
 
 		SwapChainDesc sdesc = getSceneManager()->swapChain()->GetDesc();
 
-		float scale = d->_overlay_width;
+		float scale = d->overlay_width;
 
 		float aspect = (float)sdesc.Width / (float)sdesc.Height;
 
 		float width  = size.x() / scale;
 		float height = width / aspect;
 
-		float L = -d->_overlay_x*width;
-		float T = -d->_overlay_y*height;
+		float l = -d->overlay_x*width;
+		float t = -d->overlay_y*height;
 
-		if(d->_overlay_align_right)
-			L = -(width-size.x())+d->_overlay_x*width;
+		if(d->overlay_align_right)
+			l = -(width-size.x())+d->overlay_x*width;
 
-		if(d->_overlay_align_bottom)
-			T = -(height-size.y())+d->_overlay_y*height;
+		if(d->overlay_align_bottom)
+			t = -(height-size.y())+d->overlay_y*height;
 
 
-		float R = L+width;
-		float B = T+height;
+		float r = l+width;
+		float b = t+height;
 
-		Eigen::Matrix4d M;
-		M <<
-			2.0f / (R - L),                  0.0f,   0.0f,   0.0f,
-			0.0f,                  2.0f / (T - B),   0.0f,   0.0f,
+		Eigen::Matrix4d m;
+		m <<
+			2.0f / (r - l),                  0.0f,   0.0f,   0.0f,
+			0.0f,                  2.0f / (t - b),   0.0f,   0.0f,
 			0.0f,                            0.0f,   0.5f,   0.0f,
-			(R + L) / (L - R),  (T + B) / (B - T),   0.5f,   1.0f;
+			(r + l) / (l - r),  (t + b) / (b - t),   0.5f,   1.0f;
 
-		M.transposeInPlace();
+		m.transposeInPlace();
 
 		d->matrices.view.setIdentity();
 		d->matrices.proj = d->matrices.view;
-		d->matrices.viewProj = d->matrices.view;
-		d->matrices.worldView = d->matrices.view;
-		d->matrices.worldViewProj = M;
+		d->matrices.view_proj = d->matrices.view;
+		d->matrices.world_view = d->matrices.view;
+		d->matrices.world_view_proj = m;
 	}
 
 	for(const auto& p : d->layers)
@@ -241,7 +241,7 @@ void CanvasObject::renderDrawList(ImDrawList* draw_list, float opacity)
 	getSceneManager()->context()->SetStencilRef(getStencilId());
 
 	dg::ImGuiImplDg::RenderParams params;
-	params.worldViewProj = &d->matrices.worldViewProj;
+	params.worldViewProj = &d->matrices.world_view_proj;
 	params.opacity = opacity;
 	d->imgui_impl->render(getSceneManager()->context(), &data, params);
 }
@@ -270,7 +270,7 @@ void CanvasObject::onDetached(Node* node)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CanvasLayer::CanvasLayer(CanvasObject* parent_object) : _parent_object(parent_object)
+CanvasLayer::CanvasLayer(CanvasObject* parent_object) : parent_object_(parent_object)
 {
 }
 

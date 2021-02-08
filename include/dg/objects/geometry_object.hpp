@@ -18,7 +18,7 @@ public:
 public:
 
 	void setMaterial(IMaterial::Ptr m);
-	IMaterial::ConstPtr getMaterial() const { return _material; }
+	IMaterial::ConstPtr getMaterial() const { return material; }
 
 };
 

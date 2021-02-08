@@ -54,15 +54,15 @@ private:
 
 private:
 
-	xcb_connection_t* _connection;
-	XKBContextPtr _xkb_context;
-	XKBStatePtr _xkb_state;
-	XKBKeymapPtr _xkb_keymap;
+	xcb_connection_t* connection_;
+	XKBContextPtr xkb_context_;
+	XKBStatePtr xkb_state_;
+	XKBKeymapPtr xkb_keymap_;
 
 
 private:
 
-    struct xkb_mods {
+    struct XkbMods {
         xkb_mod_index_t shift;
         xkb_mod_index_t lock;
         xkb_mod_index_t control;
@@ -72,7 +72,7 @@ private:
         xkb_mod_index_t mod4;
         xkb_mod_index_t mod5;
     };
-    xkb_mods _xkb_mods;
+    XkbMods xkb_mods_;
 
 
 

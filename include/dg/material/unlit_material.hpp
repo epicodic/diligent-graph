@@ -27,11 +27,11 @@ private:
 
 	struct MaterialVS;
 
-	RenderTargetBlendDesc _blend_desc;
+	RenderTargetBlendDesc blend_desc_;
 
 private:
 
-	static std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> _shared_shader_programs;
+	static std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> shared_shader_programs;
 };
 
 

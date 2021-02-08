@@ -13,16 +13,16 @@ public:
         float width;
 		float height;
 		float depth;
-		int widthSegments;
-		int heightSegments;
-		int depthSegments;
+		int width_segments;
+		int height_segments;
+		int depth_segments;
 
 		explicit Params(float width = 1.0, float height = 1.0, float depth = 1.0,
                         int widthSegments = 1, int heightSegments = 1, int depthSegments = 1) :
             width(width), height(height), depth(depth),
-			widthSegments(widthSegments),
-			heightSegments(heightSegments),
-            depthSegments(depthSegments)
+			width_segments(widthSegments),
+			height_segments(heightSegments),
+            depth_segments(depthSegments)
 		{}
 	};
 

@@ -17,12 +17,12 @@ public:
 	virtual void render() override;
 	virtual void setOpacity(float opacity) override;
 
-	dg::ManualObject* manualObject() { return _manualObject.get(); }
-	const dg::ManualObject* manualObject() const { return _manualObject.get(); }
+	dg::ManualObject* manualObject() { return manualObject_.get(); }
+	const dg::ManualObject* manualObject() const { return manualObject_.get(); }
 
 private:
 
-    dg::ManualObject::UniquePtr _manualObject;
+    dg::ManualObject::UniquePtr manualObject_;
 };
 
 }

@@ -4,15 +4,15 @@ namespace dg {
 
 CanvasManualLayer::CanvasManualLayer(CanvasObject* parent_object) : CanvasLayer(parent_object)
 {
-	_manualObject = dg::ManualObject::make_unique(getParentObject()->getSceneManager());
+	manualObject_ = dg::ManualObject::make_unique(getParentObject()->getSceneManager());
 }
 
 void CanvasManualLayer::render()
 {
-	if(!_manualObject)
+	if(!manualObject_)
 		return;
 
-	for(const auto& p : _manualObject->getSections())
+	for(const auto& p : manualObject_->getSections())
 	{
 		getParentObject()->getSceneManager()->render(p.get(), getParentObject()->getRenderMatrices());
 	}

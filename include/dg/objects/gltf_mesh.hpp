@@ -35,7 +35,7 @@ public:
 private:
 
 	struct Pimpl;
-	std::unique_ptr<Pimpl> d;
+	std::unique_ptr<Pimpl> d_;
 };
 
 }

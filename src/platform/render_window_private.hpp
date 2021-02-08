@@ -20,8 +20,8 @@ class RenderWindowPrivate
 public:
 	RefCntAutoPtr<IRenderDevice>  device;
 	RefCntAutoPtr<IDeviceContext> context;
-	RefCntAutoPtr<ISwapChain>     swapChain;
-	IEngineFactory*               engineFactory;
+	RefCntAutoPtr<ISwapChain>     swap_chain;
+	IEngineFactory*               engine_factory;
 
 	std::unique_ptr<ImGuiIntegration> gui;
 };

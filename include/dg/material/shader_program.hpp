@@ -52,21 +52,21 @@ public:
 	                const std::string& vs_code, const std::string& ps_code,
 	                const MacroDefinitions& macros= MacroDefinitions());
 
-	RefCntAutoPtr<IShader> getVertexShader() { return _vertex_shader; }
-	RefCntAutoPtr<IShader> getPixelShader() { return _pixel_shader; }
+	RefCntAutoPtr<IShader> getVertexShader() { return vertex_shader_; }
+	RefCntAutoPtr<IShader> getPixelShader() { return pixel_shader_; }
 
 	template <typename T>
 	void addConstant(IRenderDevice* device,
 			         const std::string& name, SHADER_TYPE shader_type = SHADER_TYPE_VERTEX)
 	{
-		_addConstant(device, {name, shader_type, &typeid(T), sizeof(T)});
+		addConstant(device, {name, shader_type, &typeid(T), sizeof(T)});
 	};
 
 	template <typename T>
 	MapHelper<T> mapConstant(IDeviceContext* context, const std::string& name)
 	{
-		auto it = _constants.find(name);
-		if(it==_constants.end())
+		auto it = constants_.find(name);
+		if(it==constants_.end())
 			DG_THROW("No such constant found: " + name);
 
 		if(typeid(T) != *it->second.type)
@@ -85,7 +85,7 @@ public:
 
 private:
 
-	void _addConstant(IRenderDevice* device, const ConstantDef& def);
+	void addConstant(IRenderDevice* device, const ConstantDef& def);
 
 private:
 
@@ -97,9 +97,9 @@ private:
 		RefCntAutoPtr<IBuffer> buffer;
 	};
 
-	RefCntAutoPtr<IShader> _vertex_shader;
-	RefCntAutoPtr<IShader> _pixel_shader;
-	std::map<std::string, Constant> _constants;
+	RefCntAutoPtr<IShader> vertex_shader_;
+	RefCntAutoPtr<IShader> pixel_shader_;
+	std::map<std::string, Constant> constants_;
 
 };
 

@@ -26,46 +26,46 @@ public:
 
 	virtual const std::vector<Vector3>& getPositions() const override
 	{
-		return _positions;
+		return positions_;
 	}
 
 	virtual const std::vector<Vector3>& getNormals() const override
 	{
-		return _normals;
+		return normals_;
 	}
 
 	virtual const std::vector<Vector2f>& getUVs() const override
 	{
-		return _uvs;
+		return uvs_;
 	}
 
 	virtual const std::vector<std::uint32_t>& getIndices() const override
 	{
-		return _indices;
+		return indices_;
 	}
 
 	std::vector<Vector3>& getPositions()
 	{
-		return _positions;
+		return positions_;
 	}
 
 	std::vector<Vector3>& getNormals()
 		{
-		return _normals;
+		return normals_;
 	}
 
 	std::vector<Vector2f>& getUVs()
 	{
-		return _uvs;
+		return uvs_;
 	}
 
 
 protected:
 
-	std::vector<Vector3> _positions;
-	std::vector<Vector3> _normals;
-	std::vector<Vector2f> _uvs;
-	std::vector<std::uint32_t> _indices;
+	std::vector<Vector3> positions_;
+	std::vector<Vector3> normals_;
+	std::vector<Vector2f> uvs_;
+	std::vector<std::uint32_t> indices_;
 
 };
 

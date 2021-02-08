@@ -36,7 +36,7 @@ public:
 
     void setRenderOrder(RenderOrder order)
     {
-        _render_order = order;
+        render_order_ = order;
     }
 
 
@@ -49,7 +49,7 @@ public:
 
     typedef std::vector<std::unique_ptr<Section>> Sections;
 
-    const Sections& getSections() { return _sections; }
+    const Sections& getSections() { return sections_; }
 
 
 protected:
@@ -65,20 +65,20 @@ private:
 private:
 
 
-	SceneManager* _manager;
+	SceneManager* manager_;
 
-	Sections _sections;
-	std::unique_ptr<Section> _currentSection;
+	Sections sections_;
+	std::unique_ptr<Section> currentSection_;
 
-	std::size_t _vertexSize = 0;
-	std::size_t _vertexCount = 0;
-	float* _buf_ptr = nullptr;
-	std::vector<float> _buf;
+	std::size_t vertexSize_ = 0;
+	std::size_t vertexCount_ = 0;
+	float* buf_ptr_ = nullptr;
+	std::vector<float> buf_;
 
-	std::size_t _indexCount = 0;
-	std::vector<std::uint32_t> _idxbuf;
+	std::size_t indexCount_ = 0;
+	std::vector<std::uint32_t> idxbuf_;
 
-	RenderOrder _render_order;
+	RenderOrder render_order_;
 
 
 };
