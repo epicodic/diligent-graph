@@ -14,20 +14,20 @@ class Object
 {
 public:
 
-	DG_PTR(Object)
+    DG_PTR(Object)
 
-	Object(TypeId type_id) : type_id_(type_id) {}
-	virtual ~Object();
+    Object(TypeId type_id) : type_id_(type_id) {}
+    virtual ~Object();
 
-	TypeId typeId() { return type_id_; }
+    TypeId typeId() { return type_id_; }
 
-	template <typename T>
-	T* cast() {
-	    if(type_id<T>() == type_id_)
-	        return reinterpret_cast<T*>(this);
-	    else
-	        return nullptr;
-	}
+    template <typename T>
+    T* cast() {
+        if(type_id<T>() == type_id_)
+            return reinterpret_cast<T*>(this);
+        else
+            return nullptr;
+    }
 
     template <typename T>
     const T* cast() const {
@@ -39,25 +39,25 @@ public:
 
 public:
 
-	/// Returns the node, this object is attached to
-	Node::ConstPtr getNode() const { return node_; }
-	const Node::Ptr& getNode() { return node_; }
+    /// Returns the node, this object is attached to
+    Node::ConstPtr getNode() const { return node_; }
+    const Node::Ptr& getNode() { return node_; }
 
 protected:
 
-	/// Called when object is attached to a node
-	virtual void onAttached(Node* node) {}
+    /// Called when object is attached to a node
+    virtual void onAttached(Node* node) {}
 
-	/// Called when object is detached from node
-	virtual void onDetached(Node* node) {}
+    /// Called when object is detached from node
+    virtual void onDetached(Node* node) {}
 
 private:
 
-	friend class Node;
+    friend class Node;
 
-	Node::Ptr node_;
-	std::size_t object_idx_ = 0; // our index in _node->_objects (managed by Node)
-	TypeId type_id_;
+    Node::Ptr node_;
+    std::size_t object_idx_ = 0; // our index in _node->_objects (managed by Node)
+    TypeId type_id_;
 };
 
 

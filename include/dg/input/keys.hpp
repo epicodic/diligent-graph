@@ -413,7 +413,7 @@ enum ModifierKey {
     Modifier_Ctrl        = 0x04000000,
     Modifier_Alt         = 0x08000000,
     Modifier_Meta        = 0x10000000,
-	Modifier_Keypad      = 0x20000000,
+    Modifier_Keypad      = 0x20000000,
     Modifier_GroupSwitch = 0x40000000,
     // Do not extend the mask to include 0x01000000
     ModifierMask         = 0xfe000000

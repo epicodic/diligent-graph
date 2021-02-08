@@ -30,18 +30,18 @@ namespace dg {
 
 struct GLTFMesh::Pimpl
 {
-	std::unique_ptr<GLTF_PBR_Renderer>    renderer;
-	std::unique_ptr<GLTF::Model>          model;
+    std::unique_ptr<GLTF_PBR_Renderer>    renderer;
+    std::unique_ptr<GLTF::Model>          model;
 
-	RefCntAutoPtr<IBuffer>                camera_attribs_cb;
-	RefCntAutoPtr<IBuffer>                light_attribs_cb;
-	RefCntAutoPtr<ITextureView>           env_map_srv;
-	RefCntAutoPtr<IBuffer>                env_map_attribs_cb;
+    RefCntAutoPtr<IBuffer>                camera_attribs_cb;
+    RefCntAutoPtr<IBuffer>                light_attribs_cb;
+    RefCntAutoPtr<ITextureView>           env_map_srv;
+    RefCntAutoPtr<IBuffer>                env_map_attribs_cb;
 
     bool initialized = false;
     bool use_local_frame = true;
 
-	std::string filename;
+    std::string filename;
 };
 
 struct EnvMapRenderAttribs
@@ -57,7 +57,7 @@ struct EnvMapRenderAttribs
 
 GLTFMesh::GLTFMesh()
 {
-	d.reset(new Pimpl);
+    d.reset(new Pimpl);
 }
 
 GLTFMesh::~GLTFMesh() = default;
@@ -70,7 +70,7 @@ void GLTFMesh::load(const std::string& filename)
 
 void GLTFMesh::initialize(SceneManager* manager)
 {
-	RefCntAutoPtr<ITexture> env_map = manager->getEnvironmentMap();
+    RefCntAutoPtr<ITexture> env_map = manager->getEnvironmentMap();
 
     if(env_map)
         d->env_map_srv = env_map->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
@@ -102,23 +102,23 @@ void GLTFMesh::initialize(SceneManager* manager)
 
     d->model.reset(new GLTF::Model(manager->device(), manager->context(), d->filename));
 
-	d->renderer->InitializeResourceBindings(*d->model, d->camera_attribs_cb, d->light_attribs_cb);
+    d->renderer->InitializeResourceBindings(*d->model, d->camera_attribs_cb, d->light_attribs_cb);
 
-	d->initialized = true;
+    d->initialized = true;
 }
 
 void GLTFMesh::useLocalWorldFrame(bool use_local_frame) 
 {
-	d->use_local_frame = use_local_frame;
+    d->use_local_frame = use_local_frame;
 }
 
 void GLTFMesh::render(SceneManager* manager)
 {
-	if(!d->initialized)
-		initialize(manager);
+    if(!d->initialized)
+        initialize(manager);
 
 
-	// TODO get light info from scene manager
+    // TODO get light info from scene manager
     float3 light_direction = float3(-1,-1,-1);
     float4 light_color     = float4(1, 1, 1, 1);
     float  light_intensity = 5.f;
@@ -181,7 +181,7 @@ void GLTFMesh::render(SceneManager* manager)
 
 GLTF::Model* GLTFMesh::getGLTFModel()
 {
-	return d->model.get();
+    return d->model.get();
 }
 
 

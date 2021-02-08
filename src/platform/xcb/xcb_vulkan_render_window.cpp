@@ -17,9 +17,9 @@ class XCBVulkanRenderWindow : public XCBRenderWindow
 
 public:
 
-	XCBVulkanRenderWindow(RenderWindowListener* listener);
+    XCBVulkanRenderWindow(RenderWindowListener* listener);
 
-	virtual void create(const CreationOptions& options) override;
+    virtual void create(const CreationOptions& options) override;
 };
 
 
@@ -29,7 +29,7 @@ XCBVulkanRenderWindow::XCBVulkanRenderWindow(RenderWindowListener* listener) : X
 
 void XCBVulkanRenderWindow::create(const CreationOptions& options)
 {
-	int default_screen;
+    int default_screen;
 
     int scr         = 0;
     xcb_connection_t* connection = xcb_connect(nullptr, &scr);
@@ -38,14 +38,14 @@ void XCBVulkanRenderWindow::create(const CreationOptions& options)
 
     XCBKeyboard::initializeXKB(connection);
 
-	const xcb_setup_t*    setup = xcb_get_setup(connection);
-	xcb_screen_iterator_t iter  = xcb_setup_roots_iterator(setup);
-	while (scr-- > 0)
-		xcb_screen_next(&iter);
+    const xcb_setup_t*    setup = xcb_get_setup(connection);
+    xcb_screen_iterator_t iter  = xcb_setup_roots_iterator(setup);
+    while (scr-- > 0)
+        xcb_screen_next(&iter);
 
-	auto screen = iter.data;
+    auto screen = iter.data;
 
-	createWindow(connection, screen->root, screen->root_visual, options);
+    createWindow(connection, screen->root, screen->root_visual, options);
 
 
     xcb_map_window(connection_, window_);
@@ -75,21 +75,21 @@ class XCBVulkanRenderWindowFactory : public RenderWindowFactory
 {
 public:
 
-	XCBVulkanRenderWindowFactory()
-	{
-		registerFactory("vulkan", this);
-	}
+    XCBVulkanRenderWindowFactory()
+    {
+        registerFactory("vulkan", this);
+    }
 
-	~XCBVulkanRenderWindowFactory()
-	{
-		unregisterFactory(this);
-	}
+    ~XCBVulkanRenderWindowFactory()
+    {
+        unregisterFactory(this);
+    }
 
-	virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
-	{
-		RenderWindow* win = new XCBVulkanRenderWindow(listener);
-		return win;
-	}
+    virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
+    {
+        RenderWindow* win = new XCBVulkanRenderWindow(listener);
+        return win;
+    }
 
 };
 

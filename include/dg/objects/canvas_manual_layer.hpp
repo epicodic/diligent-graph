@@ -12,13 +12,13 @@ namespace dg {
 class CanvasManualLayer : public CanvasLayer
 {
 public:
-	CanvasManualLayer(CanvasObject* parent_object);
+    CanvasManualLayer(CanvasObject* parent_object);
 
-	virtual void render() override;
-	virtual void setOpacity(float opacity) override;
+    virtual void render() override;
+    virtual void setOpacity(float opacity) override;
 
-	dg::ManualObject* manualObject() { return manualObject_.get(); }
-	const dg::ManualObject* manualObject() const { return manualObject_.get(); }
+    dg::ManualObject* manualObject() { return manualObject_.get(); }
+    const dg::ManualObject* manualObject() const { return manualObject_.get(); }
 
 private:
 

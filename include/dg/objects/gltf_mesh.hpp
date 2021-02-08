@@ -16,26 +16,26 @@ class GLTFMesh : public RawRenderable
 {
 
 public:
-	DG_PTR(GLTFMesh)
+    DG_PTR(GLTFMesh)
 
-	GLTFMesh();
-	virtual ~GLTFMesh();
+    GLTFMesh();
+    virtual ~GLTFMesh();
 
 public:
 
-	void load(const std::string& filename);
-	void initialize(SceneManager* manager);
+    void load(const std::string& filename);
+    void initialize(SceneManager* manager);
 
-	void useLocalWorldFrame(bool use_local_frame=true);
+    void useLocalWorldFrame(bool use_local_frame=true);
 
-	virtual void render(SceneManager* manager) override;
-	GLTF::Model* getGLTFModel();
+    virtual void render(SceneManager* manager) override;
+    GLTF::Model* getGLTFModel();
 
 
 private:
 
-	struct Pimpl;
-	std::unique_ptr<Pimpl> d;
+    struct Pimpl;
+    std::unique_ptr<Pimpl> d;
 };
 
 }

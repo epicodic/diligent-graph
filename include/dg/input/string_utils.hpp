@@ -23,14 +23,14 @@ inline  std::string str_toupper(std::string s) {
 
 inline std::wstring string_to_wstring(const std::string& s)
 {
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> utf16conv;
-	return utf16conv.from_bytes(s);
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf16conv;
+    return utf16conv.from_bytes(s);
 }
 
 inline std::string wstring_to_string(const std::wstring& s)
 {
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> utf16conv;
-	return utf16conv.to_bytes(s);
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf16conv;
+    return utf16conv.to_bytes(s);
 }
 
 }

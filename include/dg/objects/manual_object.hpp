@@ -10,29 +10,29 @@ namespace dg {
 class ManualObject : public Object
 {
 public:
-	DG_PTR(ManualObject)
+    DG_PTR(ManualObject)
 
-	ManualObject(SceneManager* manager);
-	virtual ~ManualObject();
+    ManualObject(SceneManager* manager);
+    virtual ~ManualObject();
 
 public:
 
     void clear();
 
-	void begin(IMaterial::Ptr material, PRIMITIVE_TOPOLOGY topology);
-	void begin(IMaterial::Ptr material, DepthStencilStateDesc depthStencilDesc, PRIMITIVE_TOPOLOGY topology);
+    void begin(IMaterial::Ptr material, PRIMITIVE_TOPOLOGY topology);
+    void begin(IMaterial::Ptr material, DepthStencilStateDesc depthStencilDesc, PRIMITIVE_TOPOLOGY topology);
 
 
-	void end();
+    void end();
 
-	void position(float x, float y, float z);
-	void normal(float x, float y, float z);
-	void color(const Color& col);
-	void color(float r, float g, float b, float a);
-	void textureCoord(float u, float v);
+    void position(float x, float y, float z);
+    void normal(float x, float y, float z);
+    void color(const Color& col);
+    void color(float r, float g, float b, float a);
+    void textureCoord(float u, float v);
 
-	void index(std::uint32_t idx);
-	void triangle(std::uint32_t i1, std::uint32_t i2, std::uint32_t i3);
+    void index(std::uint32_t idx);
+    void triangle(std::uint32_t i1, std::uint32_t i2, std::uint32_t i3);
 
     void setRenderOrder(RenderOrder order)
     {
@@ -54,31 +54,31 @@ public:
 
 protected:
 
-	virtual void onAttached(Node* node) override;
-	virtual void onDetached(Node* node) override;
+    virtual void onAttached(Node* node) override;
+    virtual void onDetached(Node* node) override;
 
 
 private:
 
-	void addVertex();
+    void addVertex();
 
 private:
 
 
-	SceneManager* manager_;
+    SceneManager* manager_;
 
-	Sections sections_;
-	std::unique_ptr<Section> current_section_;
+    Sections sections_;
+    std::unique_ptr<Section> current_section_;
 
-	std::size_t vertex_size_ = 0;
-	std::size_t vertex_count_ = 0;
-	float* buf_ptr_ = nullptr;
-	std::vector<float> buf_;
+    std::size_t vertex_size_ = 0;
+    std::size_t vertex_count_ = 0;
+    float* buf_ptr_ = nullptr;
+    std::vector<float> buf_;
 
-	std::size_t index_count_ = 0;
-	std::vector<std::uint32_t> idxbuf_;
+    std::size_t index_count_ = 0;
+    std::vector<std::uint32_t> idxbuf_;
 
-	RenderOrder render_order_;
+    RenderOrder render_order_;
 
 
 };

@@ -91,24 +91,24 @@ struct ImGuiImplDg::Pimpl
 
 
 ImGuiImplDg::ImGuiImplDg(IRenderDevice* device,
-		                 std::uint16_t  backBufferFmt,
-						 std::uint16_t  depthBufferFmt,
-						 std::uint32_t  initialVertexBufferSize,
-						 std::uint32_t  initialIndexBufferSize) : d(new Pimpl)
+                         std::uint16_t  backBufferFmt,
+                         std::uint16_t  depthBufferFmt,
+                         std::uint32_t  initialVertexBufferSize,
+                         std::uint32_t  initialIndexBufferSize) : d(new Pimpl)
 {
-	d->device = device;
-	d->backBufferFmt = backBufferFmt;
-	d->depthBufferFmt = depthBufferFmt;
-	d->vertexBufferSize = initialVertexBufferSize;
-	d->indexBufferSize = initialIndexBufferSize;
+    d->device = device;
+    d->backBufferFmt = backBufferFmt;
+    d->depthBufferFmt = depthBufferFmt;
+    d->vertexBufferSize = initialVertexBufferSize;
+    d->indexBufferSize = initialIndexBufferSize;
 
 
-	IMGUI_CHECKVERSION();
-	ImGuiContext* oldctx = ImGui::GetCurrentContext();
+    IMGUI_CHECKVERSION();
+    ImGuiContext* oldctx = ImGui::GetCurrentContext();
 
-	d->imgui_ctx = ImGui::CreateContext(oldctx ? ImGui::GetIO().Fonts : nullptr);
+    d->imgui_ctx = ImGui::CreateContext(oldctx ? ImGui::GetIO().Fonts : nullptr);
 
-	ImGui::SetCurrentContext(d->imgui_ctx);
+    ImGui::SetCurrentContext(d->imgui_ctx);
 
     ImGuiIO& io            = ImGui::GetIO();
     io.BackendRendererName = "ImGuiImplDg";
@@ -118,7 +118,7 @@ ImGuiImplDg::ImGuiImplDg(IRenderDevice* device,
 
     createDeviceObjects();
 
-	ImGui::SetCurrentContext(oldctx);
+    ImGui::SetCurrentContext(oldctx);
 
 }
 
@@ -131,7 +131,7 @@ ImGuiImplDg::~ImGuiImplDg()
 
 ImGuiContext* ImGuiImplDg::getImGuiContext()
 {
-	return d->imgui_ctx;
+    return d->imgui_ctx;
 }
 
 
@@ -190,12 +190,12 @@ void ImGuiImplDg::createDeviceObjects()
 
 
     DepthStencilStateDesc depthStencilDesc;
-	depthStencilDesc.DepthEnable = true;
-	depthStencilDesc.DepthFunc = COMPARISON_FUNC_ALWAYS;
-	depthStencilDesc.StencilEnable = true;
-	depthStencilDesc.FrontFace.StencilPassOp = STENCIL_OP_KEEP;
-	depthStencilDesc.FrontFace.StencilFunc = COMPARISON_FUNC_EQUAL;
-	depthStencilDesc.BackFace = depthStencilDesc.FrontFace;
+    depthStencilDesc.DepthEnable = true;
+    depthStencilDesc.DepthFunc = COMPARISON_FUNC_ALWAYS;
+    depthStencilDesc.StencilEnable = true;
+    depthStencilDesc.FrontFace.StencilPassOp = STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilFunc = COMPARISON_FUNC_EQUAL;
+    depthStencilDesc.BackFace = depthStencilDesc.FrontFace;
 
 
     GraphicsPipeline.DepthStencilDesc = depthStencilDesc;
@@ -293,9 +293,9 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
     // Create and grow vertex/index buffers if needed
     if (!d->vb || static_cast<int>(d->vertexBufferSize) < pDrawData->TotalVtxCount)
     {
-    	d->vb.Release();
+        d->vb.Release();
         while (static_cast<int>(d->vertexBufferSize) < pDrawData->TotalVtxCount)
-        	d->vertexBufferSize *= 2;
+            d->vertexBufferSize *= 2;
 
         BufferDesc VBDesc;
         VBDesc.Name           = "Imgui vertex buffer";
@@ -308,9 +308,9 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
 
     if (!d->ib || static_cast<int>(d->indexBufferSize) < pDrawData->TotalIdxCount)
     {
-    	d->ib.Release();
+        d->ib.Release();
         while (static_cast<int>(d->indexBufferSize) < pDrawData->TotalIdxCount)
-        	d->indexBufferSize *= 2;
+            d->indexBufferSize *= 2;
 
         BufferDesc IBDesc;
         IBDesc.Name           = "Imgui index buffer";
@@ -343,30 +343,30 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
     // DisplayPos is (0,0) for single viewport apps.
     {
         //MapHelper<float4x4> CBData(ctx, d->vertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-    	MapHelper<ImGuiImplDgShaderConstants> CBData(ctx, d->vertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
+        MapHelper<ImGuiImplDgShaderConstants> CBData(ctx, d->vertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
 
-    	CBData->Opacity = params.opacity;
+        CBData->Opacity = params.opacity;
 
         if(params.worldViewProj == nullptr)
         {
-			float L = pDrawData->DisplayPos.x;
-			float R = pDrawData->DisplayPos.x + pDrawData->DisplaySize.x;
-			float T = pDrawData->DisplayPos.y;
-			float B = pDrawData->DisplayPos.y + pDrawData->DisplaySize.y;
+            float L = pDrawData->DisplayPos.x;
+            float R = pDrawData->DisplayPos.x + pDrawData->DisplaySize.x;
+            float T = pDrawData->DisplayPos.y;
+            float B = pDrawData->DisplayPos.y + pDrawData->DisplaySize.y;
 
-			//*CBData = float4x4
-			CBData->ProjectionMatrix = float4x4
-			{
-				2.0f / (R - L),                  0.0f,   0.0f,   0.0f,
-				0.0f,                  2.0f / (T - B),   0.0f,   0.0f,
-				0.0f,                            0.0f,   0.5f,   0.0f,
-				(R + L) / (L - R),  (T + B) / (B - T),   0.5f,   1.0f
-			};
+            //*CBData = float4x4
+            CBData->ProjectionMatrix = float4x4
+            {
+                2.0f / (R - L),                  0.0f,   0.0f,   0.0f,
+                0.0f,                  2.0f / (T - B),   0.0f,   0.0f,
+                0.0f,                            0.0f,   0.5f,   0.0f,
+                (R + L) / (L - R),  (T + B) / (B - T),   0.5f,   1.0f
+            };
         }
         else
         {
-        	//matrix_to_float4x4t(*params.worldViewProj, *CBData);
-        	matrix_to_float4x4t(*params.worldViewProj, CBData->ProjectionMatrix);
+            //matrix_to_float4x4t(*params.worldViewProj, *CBData);
+            matrix_to_float4x4t(*params.worldViewProj, CBData->ProjectionMatrix);
         }
     }
 

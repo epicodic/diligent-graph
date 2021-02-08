@@ -15,24 +15,24 @@ class RawRenderable : public Object
 
 public:
 
-	RawRenderable() : Object(type_id<RawRenderable>()) {}
+    RawRenderable() : Object(type_id<RawRenderable>()) {}
 
-	virtual ~RawRenderable() = default;
+    virtual ~RawRenderable() = default;
 
 public:
 
-	void setRenderOrder(RenderOrder order)
+    void setRenderOrder(RenderOrder order)
     {
         render_order_ = order;
     }
 
-	virtual void render(SceneManager* manager) = 0;
+    virtual void render(SceneManager* manager) = 0;
 
 protected:
 
-	friend class SceneManager;
+    friend class SceneManager;
 
-	RenderOrder  render_order_ ;
+    RenderOrder  render_order_ ;
 
 };
 

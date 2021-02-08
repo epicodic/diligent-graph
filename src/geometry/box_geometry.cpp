@@ -73,8 +73,8 @@ void BoxGeometry::buildPlane(int u, int v, int w, float udir, float vdir, float 
 BoxGeometry::BoxGeometry(const Params& p)
 {
     positions_.clear();
-	normals_.clear();
-	uvs_.clear();
+    normals_.clear();
+    uvs_.clear();
 
     buildPlane( 2, 1, 0, -1, -1, p.depth, p.height,  p.width,  p.depth_segments, p.height_segments); // px
     buildPlane( 2, 1, 0,  1, -1, p.depth, p.height, -p.width,  p.depth_segments, p.height_segments); // nx

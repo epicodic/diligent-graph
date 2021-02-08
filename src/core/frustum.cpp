@@ -23,7 +23,7 @@ Eigen::Matrix4f Frustum::computeProjectionMatrix() const
     float inv_h = 1 / (top - bottom);
     float inv_d = 1 / (far_plane - near_plane);
 
-	// Calc matrix elements
+    // Calc matrix elements
     float A = 2 * near_plane * inv_w;
     float B = 2 * near_plane * inv_h;
     float C = (right + left) * inv_w;
@@ -31,16 +31,16 @@ Eigen::Matrix4f Frustum::computeProjectionMatrix() const
     float q, qn;
 
     if (far_plane == 0)
-	{
-		// Infinite far plane
-		q = INFINITE_FAR_PLANE_ADJUST - 1.0f;
-		qn = near_plane * (INFINITE_FAR_PLANE_ADJUST - 2.0f);
-	}
-	else
-	{
-		q = - (far_plane + near_plane) * inv_d;
-		qn = -2 * (far_plane * near_plane) * inv_d;
-	}
+    {
+        // Infinite far plane
+        q = INFINITE_FAR_PLANE_ADJUST - 1.0f;
+        qn = near_plane * (INFINITE_FAR_PLANE_ADJUST - 2.0f);
+    }
+    else
+    {
+        q = - (far_plane + near_plane) * inv_d;
+        qn = -2 * (far_plane * near_plane) * inv_d;
+    }
 
     Eigen::Matrix4f proj_mat;
 

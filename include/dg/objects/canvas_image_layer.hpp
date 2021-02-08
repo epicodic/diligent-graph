@@ -12,15 +12,15 @@ namespace dg {
 class CanvasImageLayer : public CanvasLayer
 {
 public:
-	CanvasImageLayer(CanvasObject* parent_object);
+    CanvasImageLayer(CanvasObject* parent_object);
 
     void setScale(float scale);
     float getScale() const;
-	void update(const dg::DynamicTexture::ImageData& data);
+    void update(const dg::DynamicTexture::ImageData& data);
 
-	virtual void render() override;
-	virtual void setOpacity(float opacity) override;
-	virtual Eigen::Vector2f getSize() const override { return size_; }
+    virtual void render() override;
+    virtual void setOpacity(float opacity) override;
+    virtual Eigen::Vector2f getSize() const override { return size_; }
 
 private:
 

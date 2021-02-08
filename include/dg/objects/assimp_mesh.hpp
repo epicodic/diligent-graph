@@ -10,16 +10,16 @@ class AssimpMesh : public ManualObject
 {
 
 public:
-	DG_PTR(AssimpMesh)
+    DG_PTR(AssimpMesh)
 
     AssimpMesh(SceneManager* manager, IMaterial::Ptr material = IMaterial::Ptr());
-	virtual ~AssimpMesh();
+    virtual ~AssimpMesh();
 
 public:
 
-	void load(const std::string& filename);
+    void load(const std::string& filename);
 
-	void setOpacity(float opacity);
+    void setOpacity(float opacity);
 
 private:
 

@@ -19,10 +19,10 @@ public:
     static constexpr std::uint32_t DefaultInitialIBSize = 2048;
 
     ImGuiImplDg(IRenderDevice* device,
-			    std::uint16_t  backBufferFmt,
-				std::uint16_t  depthBufferFmt,
-				std::uint32_t  initialVertexBufferSize = DefaultInitialVBSize,
-				std::uint32_t  initialIndexBufferSize  = DefaultInitialIBSize);
+                std::uint16_t  backBufferFmt,
+                std::uint16_t  depthBufferFmt,
+                std::uint32_t  initialVertexBufferSize = DefaultInitialVBSize,
+                std::uint32_t  initialIndexBufferSize  = DefaultInitialIBSize);
     virtual ~ImGuiImplDg();
 
     ImGuiImplDg             (const ImGuiImplDg&)  = delete;
@@ -41,8 +41,8 @@ public:
 
     struct RenderParams
     {
-    	const Eigen::Matrix4d* worldViewProj = nullptr;
-    	float opacity = 1.0f;
+        const Eigen::Matrix4d* worldViewProj = nullptr;
+        float opacity = 1.0f;
     };
 
     void render(IDeviceContext* ctx, ImDrawData* pDrawData, const RenderParams& params);

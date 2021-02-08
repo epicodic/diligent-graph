@@ -30,12 +30,12 @@ static const struct {
     { Key_PageUp,        "PgUp"},
     { Key_PageDown,      "PgDown"},
 
-	{ Key_Shift,         "Shift"},
+    { Key_Shift,         "Shift"},
     { Key_Control,       "Ctrl"},
     { Key_Meta,          "Meta"},
     { Key_Alt,           "Alt"},
-	{ Key_AltGr,         "AltGr"},
-	{ Key_Multi_key,     "Multi"},
+    { Key_AltGr,         "AltGr"},
+    { Key_Multi_key,     "Multi"},
     { Key_NumLock,       "Num"},
 
     { Key_ScrollLock,    "ScrollLock"},
@@ -201,7 +201,7 @@ static const struct {
     { Key_PageUp,        "PageUp"},
     { Key_PageDown,      "PageDown"},
     { Key_CapsLock,      "CapsLock"},
-	{ Key_NumLock,       "NumLock"},
+    { Key_NumLock,       "NumLock"},
     { Key_NumLock,       "NumberLock"},
     { Key_ScrollLock,    "ScrollLock"},
     { Key_Insert,        "Insert"},
@@ -228,65 +228,65 @@ static const struct {
 
 std::string keyToName(int key)
 {
-	const int num_key_names = sizeof g_key_names / sizeof *g_key_names;
+    const int num_key_names = sizeof g_key_names / sizeof *g_key_names;
 
-	if (key && key < Key_Escape && key != Key_Space)
-	{
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
+    if (key && key < Key_Escape && key != Key_Space)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
 
-		char16_t unicode = key;
-		return utf16conv.to_bytes(unicode);
-	}
-	else if (key >= Key_F1 && key <= Key_F35)
-	{
-		return "F"+std::to_string(key - Key_F1 + 1);
-	}
-	else
-	{
-		for(int i=0; i<num_key_names; ++i)
-		{
-			if(g_key_names[i].key == key)
-				return g_key_names[i].name;
-		}
-	}
+        char16_t unicode = key;
+        return utf16conv.to_bytes(unicode);
+    }
+    else if (key >= Key_F1 && key <= Key_F35)
+    {
+        return "F"+std::to_string(key - Key_F1 + 1);
+    }
+    else
+    {
+        for(int i=0; i<num_key_names; ++i)
+        {
+            if(g_key_names[i].key == key)
+                return g_key_names[i].name;
+        }
+    }
 
-	return std::string("<unknown, code: " + std::to_string(key) + ">" );
+    return std::string("<unknown, code: " + std::to_string(key) + ">" );
 }
 
 
 
 int keyFromName(const std::string& name)
 {
-	if(name.empty())
-		return 0;
+    if(name.empty())
+        return 0;
 
-	std::wstring utf16_name = string_to_wstring(name);
-	std::locale loc("en_US.utf8");
-	std::wstring utf16_upper_name = wstr_toupper(utf16_name, loc);
+    std::wstring utf16_name = string_to_wstring(name);
+    std::locale loc("en_US.utf8");
+    std::wstring utf16_upper_name = wstr_toupper(utf16_name, loc);
 
-	if(utf16_upper_name.size()==1)
-		return utf16_upper_name[0];
+    if(utf16_upper_name.size()==1)
+        return utf16_upper_name[0];
 
-	std::string upper_name = wstring_to_string(utf16_upper_name);
+    std::string upper_name = wstring_to_string(utf16_upper_name);
 
-	if(upper_name[0]=='F' && upper_name.size()>=2 && upper_name.size()<=3)
-	{
-		std::stringstream ss;
-		ss << upper_name.substr(1);
-		int nr;
-		ss >> nr;
-		if(nr>0 && nr<=35)
-			return Key_F1 + nr - 1;
-	}
+    if(upper_name[0]=='F' && upper_name.size()>=2 && upper_name.size()<=3)
+    {
+        std::stringstream ss;
+        ss << upper_name.substr(1);
+        int nr;
+        ss >> nr;
+        if(nr>0 && nr<=35)
+            return Key_F1 + nr - 1;
+    }
 
-	const int num_key_names = sizeof g_key_names / sizeof *g_key_names;
-	for(int i=0; i<num_key_names; ++i)
-	{
-		if(str_toupper(g_key_names[i].name) == upper_name)
-			return g_key_names[i].key;
-	}
+    const int num_key_names = sizeof g_key_names / sizeof *g_key_names;
+    for(int i=0; i<num_key_names; ++i)
+    {
+        if(str_toupper(g_key_names[i].name) == upper_name)
+            return g_key_names[i].key;
+    }
 
-	return 0;
+    return 0;
 }
 
 

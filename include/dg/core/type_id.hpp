@@ -13,16 +13,16 @@ namespace detail {
 
 struct TypeIdHelperBase
 {
-	static TypeId nextId(const std::type_info& type);
+    static TypeId nextId(const std::type_info& type);
 };
 
 template <typename T>
 struct TypeIdHelper : public TypeIdHelperBase
 {
-	static TypeId id() {
-		static TypeId id = nextId(typeid(T));
-		return id;
-	}
+    static TypeId id() {
+        static TypeId id = nextId(typeid(T));
+        return id;
+    }
 };
 
 }
@@ -34,8 +34,8 @@ struct TypeIdHelper : public TypeIdHelperBase
 template<typename T>
 TypeId type_id() // NOLINT
 {
-	// make type id for unqualified type
-	return detail::TypeIdHelper< typename std::remove_cv<T>::type >::id();
+    // make type id for unqualified type
+    return detail::TypeIdHelper< typename std::remove_cv<T>::type >::id();
 }
 
 }
