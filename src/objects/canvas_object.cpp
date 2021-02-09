@@ -241,7 +241,7 @@ void CanvasObject::renderDrawList(ImDrawList* draw_list, float opacity)
     getSceneManager()->context()->SetStencilRef(getStencilId());
 
     dg::ImGuiImplDg::RenderParams params;
-    params.worldViewProj = &d->matrices.world_view_proj;
+    params.world_view_proj = &d->matrices.world_view_proj;
     params.opacity = opacity;
     d->imgui_impl->render(getSceneManager()->context(), &data, params);
 }
