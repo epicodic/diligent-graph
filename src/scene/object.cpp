@@ -6,8 +6,8 @@ namespace dg {
 
 Object::~Object()
 {
-	if(_node)
-		_node->detach(this);
+    if(node_)
+        node_->detach(this);
 }
 
 }

@@ -19,9 +19,9 @@ public:
                      TEXTURE_FORMAT    backBufferFmt,
                      TEXTURE_FORMAT    depthBufferFmt,
                      std::uint32_t     displayWidht,
-					 std::uint32_t     displayHeight,
-					 std::uint32_t     initialVertexBufferSize = ImGuiImplDiligent::DefaultInitialVBSize,
-					 std::uint32_t     initialIndexBufferSize  = ImGuiImplDiligent::DefaultInitialIBSize);
+                     std::uint32_t     displayHeight,
+                     std::uint32_t     initialVertexBufferSize = ImGuiImplDiligent::DefaultInitialVBSize,
+                     std::uint32_t     initialIndexBufferSize  = ImGuiImplDiligent::DefaultInitialIBSize);
 
     ImGuiIntegration             (const ImGuiIntegration&)  = delete;
     ImGuiIntegration             (      ImGuiIntegration&&) = delete;
@@ -34,18 +34,18 @@ public:
 
 public:
 
-	// events
-	virtual void keyPressEvent(const KeyEvent& event);
-	virtual void keyReleaseEvent(const KeyEvent& event);
+    // events
+    virtual void keyPressEvent(const KeyEvent& event);
+    virtual void keyReleaseEvent(const KeyEvent& event);
 
-	virtual void mouseMoveEvent(const MouseEvent& event);
-	virtual void mousePressEvent(const MouseEvent& event);
-	virtual void mouseReleaseEvent(const MouseEvent& event);
-	virtual void wheelEvent(const WheelEvent& event);
+    virtual void mouseMoveEvent(const MouseEvent& event);
+    virtual void mousePressEvent(const MouseEvent& event);
+    virtual void mouseReleaseEvent(const MouseEvent& event);
+    virtual void wheelEvent(const WheelEvent& event);
 
 private:
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp;
+    std::chrono::time_point<std::chrono::high_resolution_clock> last_timestamp_;
 
 };
 

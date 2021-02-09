@@ -8,11 +8,11 @@ namespace dg {
 
 struct UnlitMaterial::MaterialVS
 {
-	Color color;
-	float opacity;
+    Color color;
+    float opacity;
 };
 
-static const char* UnlitMaterialVS =
+static const char* g_unlit_material_vs =
 DG_COMMON_CONSTANTS_VS_CODE
 R"===(
 cbuffer Material
@@ -46,7 +46,7 @@ void main(in  VSInput VSIn,
 )===";
 
 
-static const char* UnlitMaterialPS =
+static const char* g_unlit_material_ps =
 R"===(
 
 Texture2D    g_Texture;
@@ -77,114 +77,114 @@ void main(in  PSInput  PSIn,
 }
 )===";
 
-std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> UnlitMaterial::_shared_shader_programs;
+std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> UnlitMaterial::shared_shader_programs_;
 
 UnlitMaterial::UnlitMaterial(IRenderDevice* device)
 {
-	initialize(device);
+    initialize(device);
 }
 
 void UnlitMaterial::initialize(IRenderDevice* device)
 {
-	_blend_desc.BlendEnable = true;
-	_blend_desc.RenderTargetWriteMask = COLOR_MASK_ALL;
-	_blend_desc.SrcBlend       = BLEND_FACTOR_SRC_ALPHA;
-	_blend_desc.DestBlend      = BLEND_FACTOR_INV_SRC_ALPHA;
-	_blend_desc.BlendOp        = BLEND_OPERATION_ADD;
-	_blend_desc.SrcBlendAlpha  = BLEND_FACTOR_SRC_ALPHA;
-	_blend_desc.DestBlendAlpha = BLEND_FACTOR_INV_SRC_ALPHA;
-	_blend_desc.BlendOpAlpha   = BLEND_OPERATION_ADD;
+    blend_desc_.BlendEnable = true;
+    blend_desc_.RenderTargetWriteMask = COLOR_MASK_ALL;
+    blend_desc_.SrcBlend       = BLEND_FACTOR_SRC_ALPHA;
+    blend_desc_.DestBlend      = BLEND_FACTOR_INV_SRC_ALPHA;
+    blend_desc_.BlendOp        = BLEND_OPERATION_ADD;
+    blend_desc_.SrcBlendAlpha  = BLEND_FACTOR_SRC_ALPHA;
+    blend_desc_.DestBlendAlpha = BLEND_FACTOR_INV_SRC_ALPHA;
+    blend_desc_.BlendOpAlpha   = BLEND_OPERATION_ADD;
 
     std::pair<IRenderDevice*, int> key(device, texture ? 1 : 0);
-	std::weak_ptr<ShaderProgram>& shared_shader_program = _shared_shader_programs[key];
+    std::weak_ptr<ShaderProgram>& shared_shader_program = shared_shader_programs_[key];
 
-	if(shared_shader_program.expired())
-	{
-		_shader_program = std::make_shared<ShaderProgram>();
+    if(shared_shader_program.expired())
+    {
+        shader_program_ = std::make_shared<ShaderProgram>();
 
-		ShaderProgram::MacroDefinitions macros;
-		if(texture)
-		    macros.push_back(std::make_pair("USE_TEXTURE", "1"));
+        ShaderProgram::MacroDefinitions macros;
+        if(texture)
+            macros.push_back(std::make_pair("USE_TEXTURE", "1"));
 
-		_shader_program->setShaders(device, "UnlitMaterial_shader", UnlitMaterialVS, UnlitMaterialPS, macros);
-		_shader_program->addConstant<CommonConstantsVS>(device, "CommonConstantsVS");
-		_shader_program->addConstant<MaterialVS>(device, "Material");
-		shared_shader_program = _shader_program;
-	}
-	else
-		_shader_program = shared_shader_program.lock();
+        shader_program_->setShaders(device, "UnlitMaterial_shader", g_unlit_material_vs, g_unlit_material_ps, macros);
+        shader_program_->addConstant<CommonConstantsVS>(device, "CommonConstantsVS");
+        shader_program_->addConstant<MaterialVS>(device, "Material");
+        shared_shader_program = shader_program_;
+    }
+    else
+        shader_program_ = shared_shader_program.lock();
 }
 
 void UnlitMaterial::setupPSODesc(PipelineStateDesc& desc)
 {
-	DG_ASSERT(_shader_program);
+    DG_ASSERT(_shader_program);
 
-	desc.GraphicsPipeline.pVS = _shader_program->getVertexShader();
-	desc.GraphicsPipeline.pPS = _shader_program->getPixelShader();
+    desc.GraphicsPipeline.pVS = shader_program_->getVertexShader();
+    desc.GraphicsPipeline.pPS = shader_program_->getPixelShader();
 
 
     desc.GraphicsPipeline.RasterizerDesc.CullMode = (CULL_MODE) cull_mode;
 
-	desc.GraphicsPipeline.BlendDesc.IndependentBlendEnable = False;
-	RenderTargetBlendDesc& rt0 = desc.GraphicsPipeline.BlendDesc.RenderTargets[0];
-	rt0 = _blend_desc;
+    desc.GraphicsPipeline.BlendDesc.IndependentBlendEnable = False;
+    RenderTargetBlendDesc& rt0 = desc.GraphicsPipeline.BlendDesc.RenderTargets[0];
+    rt0 = blend_desc_;
 
     // Shader variables should typically be mutable, which means they are expected
     // to change on a per-instance basis
-    static ShaderResourceVariableDesc Vars[] =
+    static ShaderResourceVariableDesc vars[] =
     {
         {SHADER_TYPE_PIXEL, "g_Texture", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE}
     };
-    desc.ResourceLayout.Variables    = Vars;
-    desc.ResourceLayout.NumVariables = _countof(Vars);
+    desc.ResourceLayout.Variables    = vars;
+    desc.ResourceLayout.NumVariables = _countof(vars);
 
     // Define static sampler for g_Texture. Static samplers should be used whenever possible
-    static SamplerDesc SamLinearClampDesc
+    static SamplerDesc sam_linear_clamp_desc
     {
         FILTER_TYPE_LINEAR, FILTER_TYPE_LINEAR, FILTER_TYPE_LINEAR,
         TEXTURE_ADDRESS_CLAMP, TEXTURE_ADDRESS_CLAMP, TEXTURE_ADDRESS_CLAMP
     };
-    static StaticSamplerDesc StaticSamplers[] =
+    static StaticSamplerDesc static_samplers[] =
     {
-        {SHADER_TYPE_PIXEL, "g_Texture", SamLinearClampDesc}
+        {SHADER_TYPE_PIXEL, "g_Texture", sam_linear_clamp_desc}
     };
 
-    desc.ResourceLayout.StaticSamplers    = StaticSamplers;
-    desc.ResourceLayout.NumStaticSamplers =  _countof(StaticSamplers);
+    desc.ResourceLayout.StaticSamplers    = static_samplers;
+    desc.ResourceLayout.NumStaticSamplers =  _countof(static_samplers);
 
 }
 
 void UnlitMaterial::bindPSO(IPipelineState* pso)
 {
-	DG_ASSERT(_shader_program);
+    DG_ASSERT(_shader_program);
 
-	_shader_program->bind(pso);
+    shader_program_->bind(pso);
 }
 
 void UnlitMaterial::bindSRB(IShaderResourceBinding* srb)
 {
-	if(texture)
-	{
+    if(texture)
+    {
         // Get shader resource view from the texture
-        static dg::RefCntAutoPtr<ITextureView> textureSRV;
-        textureSRV = texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
+        static dg::RefCntAutoPtr<ITextureView> texture_srv;
+        texture_srv = texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
         // Set texture SRV in the SRB
         auto var = srb->GetVariableByName(SHADER_TYPE_PIXEL, "g_Texture");
-        var->Set(textureSRV);
-	}
+        var->Set(texture_srv);
+    }
 }
 
 void UnlitMaterial::prepareForRender(IDeviceContext* context)
 {
-	auto material = _shader_program->mapConstant<MaterialVS>(context, "Material");
-	material->color = color;
-	material->opacity = opacity;
+    auto material = shader_program_->mapConstant<MaterialVS>(context, "Material");
+    material->color = color;
+    material->opacity = opacity;
 }
 
 
 void UnlitMaterial::setBlendDesc(const RenderTargetBlendDesc& desc)
 {
-	_blend_desc = desc;
+    blend_desc_ = desc;
 }
 
 }

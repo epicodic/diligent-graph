@@ -5,7 +5,7 @@ namespace dg {
 
 struct ResizeEvent
 {
-	int width, height;
+    int width, height;
 };
 
 

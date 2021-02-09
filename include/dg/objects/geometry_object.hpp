@@ -13,12 +13,12 @@ class GeometryObject : public Renderable
 
 public:
 
-	GeometryObject(SceneManager* manager, const IGeometry& geometry, const std::vector<Color>& colors = std::vector<Color>());
+    GeometryObject(SceneManager* manager, const IGeometry& geometry, const std::vector<Color>& colors = std::vector<Color>());
 
 public:
 
-	void setMaterial(IMaterial::Ptr m);
-	IMaterial::ConstPtr getMaterial() const { return _material; }
+    void setMaterial(IMaterial::Ptr m);
+    IMaterial::ConstPtr getMaterial() const { return material; }
 
 };
 

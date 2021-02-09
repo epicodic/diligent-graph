@@ -14,19 +14,19 @@ namespace dg {
 class CanvasDrawingLayer : public CanvasLayer
 {
 public:
-	CanvasDrawingLayer(CanvasObject* parent_object);
+    CanvasDrawingLayer(CanvasObject* parent_object);
 
-	virtual void render() override;
-	virtual void setOpacity(float opacity) override;
+    virtual void render() override;
+    virtual void setOpacity(float opacity) override;
 
 
-	virtual Eigen::Vector2f getSize() const override { return _size; }
-	void setSize(const Eigen::Vector2f& size) { _size = size; }
+    virtual Eigen::Vector2f getSize() const override { return size_; }
+    void setSize(const Eigen::Vector2f& size) { size_ = size; }
     
     virtual void clear() override;
 
-	virtual bool isBackground() const override { return _is_background; }
-	void setIsBackground(bool is_background) { _is_background = is_background; }
+    virtual bool isBackground() const override { return is_background_; }
+    void setIsBackground(bool is_background) { is_background_ = is_background; }
 
 public:
 
@@ -77,24 +77,24 @@ public:
 
 private:
 
-    Eigen::Vector2f _size = Eigen::Vector2f(1.0f,1.0f);
-    bool _is_background = false;
+    Eigen::Vector2f size_ = Eigen::Vector2f(1.0f,1.0f);
+    bool is_background_ = false;
 
-	ImDrawList* _draw_list;
-	MethodStringInterface _method_ifc;
-	float _opacity = 1.0f;
+    ImDrawList* draw_list_;
+    MethodStringInterface method_ifc_;
+    float opacity_ = 1.0f;
 
 };
 
 
 inline ImVec2 to_imgui(const Eigen::Vector2f& x)
 {
-	return ImVec2(x(0), x(1));
+    return ImVec2(x(0), x(1));
 }
 
 inline ImU32 to_imgui(const dg::Color& col)
 {
-	return ImGui::ColorConvertFloat4ToU32(ImVec4(col.r, col.g, col.b, col.a));
+    return ImGui::ColorConvertFloat4ToU32(ImVec4(col.r, col.g, col.b, col.a));
 }
 
 }

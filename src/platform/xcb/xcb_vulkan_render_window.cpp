@@ -17,9 +17,9 @@ class XCBVulkanRenderWindow : public XCBRenderWindow
 
 public:
 
-	XCBVulkanRenderWindow(RenderWindowListener* listener);
+    XCBVulkanRenderWindow(RenderWindowListener* listener);
 
-	virtual void create(const CreationOptions& options) override;
+    virtual void create(const CreationOptions& options) override;
 };
 
 
@@ -29,7 +29,7 @@ XCBVulkanRenderWindow::XCBVulkanRenderWindow(RenderWindowListener* listener) : X
 
 void XCBVulkanRenderWindow::create(const CreationOptions& options)
 {
-	int default_screen;
+    int default_screen;
 
     int scr         = 0;
     xcb_connection_t* connection = xcb_connect(nullptr, &scr);
@@ -38,43 +38,34 @@ void XCBVulkanRenderWindow::create(const CreationOptions& options)
 
     XCBKeyboard::initializeXKB(connection);
 
-	const xcb_setup_t*    setup = xcb_get_setup(connection);
-	xcb_screen_iterator_t iter  = xcb_setup_roots_iterator(setup);
-	while (scr-- > 0)
-		xcb_screen_next(&iter);
+    const xcb_setup_t*    setup = xcb_get_setup(connection);
+    xcb_screen_iterator_t iter  = xcb_setup_roots_iterator(setup);
+    while (scr-- > 0)
+        xcb_screen_next(&iter);
 
-	auto screen = iter.data;
+    auto screen = iter.data;
 
-	createWindow(connection, screen->root, screen->root_visual, options);
-
-
-    xcb_map_window(_connection, _window);
+    createWindow(connection, screen->root, screen->root_visual, options);
 
 
-    Diligent::EngineVkCreateInfo EngVkAttribs;
-    EngVkAttribs.EnableValidation = true;
-/*
-    EngVkAttribs.MainDescriptorPoolSize.MaxDescriptorSets /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumSeparateSamplerDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumCombinedSamplerDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumSampledImageDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumStorageImageDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumUniformBufferDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumUniformTexelBufferDescriptors /= 8;
-    EngVkAttribs.MainDescriptorPoolSize.NumStorageTexelBufferDescriptors /= 8;
-*/
-    auto* pFactoryVk = Diligent::GetEngineFactoryVk();
-    pFactoryVk->CreateDeviceAndContextsVk(EngVkAttribs, &d->device, &d->context);
-    dg::SwapChainDesc     SCDesc;
-    dg::LinuxNativeWindow XCBWindow;
-    XCBWindow.WindowId       = _window;
-    XCBWindow.pXCBConnection = _connection;
-    pFactoryVk->CreateSwapChainVk(d->device, d->context, SCDesc, XCBWindow, &d->swapChain);
+    xcb_map_window(connection_, window_);
+
+
+    Diligent::EngineVkCreateInfo eng_vk_attribs;
+    eng_vk_attribs.EnableValidation = true;
+
+    auto* factory_vk = Diligent::GetEngineFactoryVk();
+    factory_vk->CreateDeviceAndContextsVk(eng_vk_attribs, &d->device, &d->context);
+    dg::SwapChainDesc     sc_desc;
+    dg::LinuxNativeWindow xcb_window;
+    xcb_window.WindowId       = window_;
+    xcb_window.pXCBConnection = connection_;
+    factory_vk->CreateSwapChainVk(d->device, d->context, sc_desc, xcb_window, &d->swap_chain);
 
     xcb_flush(connection);
 
     initialize();
-    resizeEvent(ResizeEvent{_width,  _height});
+    resizeEvent(ResizeEvent{width_,  height_});
 }
 
 
@@ -84,25 +75,25 @@ class XCBVulkanRenderWindowFactory : public RenderWindowFactory
 {
 public:
 
-	XCBVulkanRenderWindowFactory()
-	{
-		registerFactory("vulkan", this);
-	}
+    XCBVulkanRenderWindowFactory()
+    {
+        registerFactory("vulkan", this);
+    }
 
-	~XCBVulkanRenderWindowFactory()
-	{
-		unregisterFactory(this);
-	}
+    ~XCBVulkanRenderWindowFactory()
+    {
+        unregisterFactory(this);
+    }
 
-	virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
-	{
-		RenderWindow* win = new XCBVulkanRenderWindow(listener);
-		return win;
-	}
+    virtual RenderWindow* createRenderWindow(RenderWindowListener* listener) override
+    {
+        RenderWindow* win = new XCBVulkanRenderWindow(listener);
+        return win;
+    }
 
 };
 
-XCBVulkanRenderWindowFactory g_XCBVulkanRenderWindowFactory;
+XCBVulkanRenderWindowFactory g_xcb_vulkan_render_window_factory;
 
 
 }

@@ -65,13 +65,13 @@
 #define HAS_ARGS(...) BOOL(FIRST(_END_OF_ARGUMENTS_ __VA_ARGS__)())
 #define _END_OF_ARGUMENTS_() 0
 
-#define MAP(m, first, ...)           \
-  m(first)                           \
-  IF_ELSE(HAS_ARGS(__VA_ARGS__))(    \
-    COMMA DEFER2(_MAP)()(m, __VA_ARGS__)   \
-  )(                                 \
-    /* Do nothing, just terminate */ \
-  )
+#define MAP(m, first, ...)                     \
+    m(first)                                   \
+    IF_ELSE(HAS_ARGS(__VA_ARGS__))(            \
+        COMMA DEFER2(_MAP)()(m, __VA_ARGS__)   \
+    )(                                         \
+        /* Do nothing, just terminate */       \
+    )
 #define _MAP() MAP
 
 #define STRINGIZE(x) #x
@@ -82,87 +82,84 @@ namespace dg {
 
 SceneManager::SceneManager()
 {
-	_root = Node::make();
-	_default_camera_node = getRoot()->createChild();
-	_default_camera_node->attach(&_default_camera);
-	_camera = &_default_camera;
+    root_ = Node::make();
+    default_camera_node_ = getRoot()->createChild();
+    default_camera_node_->attach(&default_camera_);
+    camera_ = &default_camera_;
+    setGlobalLight(GlobalLight());
 }
 
-SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain) : SceneManager()
+SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain) : SceneManager()
 {
-	setDevice(device, context, swapChain);
+    setDevice(device, context, swap_chain);
 }
 
-void SceneManager::setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain)
+void SceneManager::setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain)
 {
-	_device = device;
-	_context = context;
-	_swapChain = swapChain;
+    device_ = device;
+    context_ = context;
+    swap_chain_ = swap_chain;
 }
-
 
 void SceneManager::setEnvironmentMap(const std::string& filename)
 {
-	CreateTextureFromFile(filename.c_str(), TextureLoadInfo{"SceneManager Environment Map"}, device(), &_environment_map);
+    CreateTextureFromFile(filename.c_str(), TextureLoadInfo{"SceneManager Environment Map"}, device(), &environment_map_);
     StateTransitionDesc barriers [] =
     {
-        {_environment_map, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
+        {environment_map_, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
     };
     context()->TransitionResourceStates(_countof(barriers), barriers);
 }
 
 RefCntAutoPtr<ITexture> SceneManager::getEnvironmentMap() const
 {
-	return _environment_map;
+    return environment_map_;
 }
 
 void SceneManager::render()
 {
     clearRenderQueues();
 
-	getRoot()->updateTransforms();
+    getRoot()->updateTransforms();
 
-	_render_matrices.proj = _camera->getProjectionMatrix().cast<Real>();
+    render_matrices_.proj = camera_->getProjectionMatrix().cast<Real>();
 
-	Matrix4 _viewInv;
-	_viewInv = _camera->getNode()->getDerivedTransform();
-	_render_matrices.view = _viewInv.inverse();
+    Matrix4 view_inv;
+    view_inv = camera_->getNode()->getDerivedTransform();
+    render_matrices_.view = view_inv.inverse();
 
-	_render_matrices.viewProj = _render_matrices.proj*_render_matrices.view;
-	//_viewProjInv = _viewProj.inverse();
-	_render_matrices.cameraWorldPosition = _viewInv.block<3,1>(0,3);
+    render_matrices_.view_proj = render_matrices_.proj*render_matrices_.view;
+    render_matrices_.camera_world_position = view_inv.block<3,1>(0,3);
 
-	collectRenderables(getRoot());
+    collectRenderables(getRoot());
 
-	_lastPSOInRender = nullptr;
-	_lastMaterialInRender = nullptr;
+    last_pso_in_render_ = nullptr;
+    last_material_in_render_ = nullptr;
 
-	//std::cout << std::endl << "RENDER " << std::endl;
-	for(auto& p : _renderQueues)
-	{
-	    RenderQueue& queue = p.second;
-	    //std::cout << "RenderQueue: " << queue.size() << std::endl;
+    for(auto& p : renderQueues_)
+    {
+        RenderQueue& queue = p.second;
         for(Object* obj : queue)
         {
             if(obj->typeId() == type_id<Renderable>())
             {
                 Renderable* r = reinterpret_cast<Renderable*>(obj);
                 Matrix4 world = r->getNode()->getDerivedTransform();
-                _render_matrices.worldViewProj = _render_matrices.viewProj * world;
-                _render_matrices.worldView = _render_matrices.view * world;
-                render(r, _render_matrices);
+                render_matrices_.world_view_proj = render_matrices_.view_proj * world;
+                render_matrices_.world_view = render_matrices_.view * world;
+                render(r, render_matrices_);
             }
 
             if(obj->typeId() == type_id<RawRenderable>())
             {
                 RawRenderable* r = reinterpret_cast<RawRenderable*>(obj);
                 Matrix4 world = r->getNode()->getDerivedTransform();
-                _render_matrices.worldViewProj = _render_matrices.viewProj * world;
-                _render_matrices.worldView = _render_matrices.view * world;
-                render(r, _render_matrices);
+                render_matrices_.world_view_proj = render_matrices_.view_proj * world;
+                render_matrices_.world_view = render_matrices_.view * world;
+                render(r, render_matrices_);
             }
         }
-	}
+    }
 }
 
 void SceneManager::collectRenderables(Node* node)
@@ -170,124 +167,116 @@ void SceneManager::collectRenderables(Node* node)
     if(!node->isEnabled())
         return;
 
-	for(Object* obj : node->getObjects())
-	{
+    for(Object* obj : node->getObjects())
+    {
 
-	    {
+        {
             Renderable* r = obj->cast<Renderable>();
             if(r)
-                _renderQueues[r->_render_order].push_back(obj);
-	    }
+                renderQueues_[r->render_order].push_back(obj);
+        }
         {
             RawRenderable* r = obj->cast<RawRenderable>();
             if(r)
-                _renderQueues[r->_render_order].push_back(obj);
+                renderQueues_[r->render_order_].push_back(obj);
         }
 
-	}
+    }
 
-	for(Node* child : node->getChildren())
-		collectRenderables(child);
+    for(Node* child : node->getChildren())
+        collectRenderables(child);
 }
 
 void SceneManager::clearRenderQueues()
 {
-    for(auto &p : _renderQueues)
+    for(auto &p : renderQueues_)
         p.second.clear();
 }
 
 
 void SceneManager::render(Renderable* r, const Matrices& matrices)
 {
-	const Matrices* prev_render_matrices = _current_render_matrices;
-	_current_render_matrices = &matrices;
+    const Matrices* prev_render_matrices = current_render_matrices_;
+    current_render_matrices_ = &matrices;
 
-	if(r->_pso_needs_update)
-	{
-		PipelineStateDesc desc;
-		desc.Name = "Renderable PSO";
-		desc.IsComputePipeline = false;
-		desc.GraphicsPipeline.NumRenderTargets  = 1;
-		desc.GraphicsPipeline.RTVFormats[0]     = swapChain()->GetDesc().ColorBufferFormat;
-		desc.GraphicsPipeline.DSVFormat         = swapChain()->GetDesc().DepthBufferFormat;
-		desc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+    if(r->pso_needs_update_)
+    {
+        PipelineStateDesc desc;
+        desc.Name = "Renderable PSO";
+        desc.IsComputePipeline = false;
+        desc.GraphicsPipeline.NumRenderTargets  = 1;
+        desc.GraphicsPipeline.RTVFormats[0]     = swapChain()->GetDesc().ColorBufferFormat;
+        desc.GraphicsPipeline.DSVFormat         = swapChain()->GetDesc().DepthBufferFormat;
+        desc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
 
-		desc.GraphicsPipeline.PrimitiveTopology = r->_primitiveTopology;
-		desc.GraphicsPipeline.RasterizerDesc    = r->_rasterizerDesc;
-		desc.GraphicsPipeline.DepthStencilDesc  = r->_depthStencilDesc;
+        desc.GraphicsPipeline.PrimitiveTopology = r->primitive_topology;
+        desc.GraphicsPipeline.RasterizerDesc    = r->rasterizer_desc;
+        desc.GraphicsPipeline.DepthStencilDesc  = r->depth_stencil_desc;
 
-		desc.GraphicsPipeline.InputLayout.LayoutElements = r->_inputLayout.data();
-		desc.GraphicsPipeline.InputLayout.NumElements = r->_inputLayout.size();
+        desc.GraphicsPipeline.InputLayout.LayoutElements = r->input_layout.data();
+        desc.GraphicsPipeline.InputLayout.NumElements = r->input_layout.size();
 
-		r->_material->setupPSODesc(desc);
+        r->material->setupPSODesc(desc);
 
-		std::size_t pso_hash = hash_value(desc);
-		IPipelineState* pso = _psoManager.getPSO(device(),desc);
+        std::size_t pso_hash = hash_value(desc);
+        IPipelineState* pso = pso_manager_.getPSO(device(),desc);
 
-		//std::cout << "r=" << r << std::endl;
-		//std::cout << " order: " << r->_renderOrder << std::endl;
+        // if pso has changed
+        if(pso != r->pso_)
+        {
+            r->pso_ = pso;
+            r->material->bindPSO(r->pso_);
+            pso->CreateShaderResourceBinding(&r->srb_, true); // TODO: is it sufficient to have one srb per pso instead per renderable??
+            r->material->bindSRB(r->srb_);
+        }
 
-		// if pso has changed
-		if(pso != r->_pso)
-		{
-			r->_pso = pso;
-			r->_material->bindPSO(r->_pso);
-			pso->CreateShaderResourceBinding(&r->_srb, true); // TODO: is it sufficient to have one srb per pso instead per renderable??
-			r->_material->bindSRB(r->_srb);
-		}
+        r->pso_needs_update_ = false;
+    }
 
-		r->_pso_needs_update = false;
-	}
+    {
+        auto constants = r->material->shader_program_->mapConstant<dg::CommonConstantsVS>(context(), "CommonConstantsVS");
+        matrix_to_float4x4t(current_render_matrices_->world_view_proj, constants->g_worldViewProj);
+        matrix_to_float4x4t(current_render_matrices_->world_view, constants->g_worldView);
+        matrix_to_float4x4t(current_render_matrices_->view, constants->g_view);
+        /// TODO
+        //context()->CommitShaderResources(r->_srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    }
 
-	{
-		auto constants = r->_material->_shader_program->mapConstant<dg::CommonConstantsVS>(context(), "CommonConstantsVS");
-		matrix_to_float4x4t(_current_render_matrices->worldViewProj, constants->g_worldViewProj);
-		matrix_to_float4x4t(_current_render_matrices->worldView, constants->g_worldView);
-		matrix_to_float4x4t(_current_render_matrices->view, constants->g_view);
-		/// TODO
-		//context()->CommitShaderResources(r->_srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-	}
+    if(r->material.get()!=last_material_in_render_)
+    {
+        r->material->prepareForRender(context());
+        last_material_in_render_ = r->material.get();
+    }
 
-	if(r->_material.get()!=_lastMaterialInRender)
-	{
-		//std::cout << "prepareMaterial" << std::endl;
-		r->_material->prepareForRender(context());
-		_lastMaterialInRender = r->_material.get();
-	}
-
-	// Bind vertex and index buffers
+    // Bind vertex and index buffers
     Uint32   offset   = 0;
-    IBuffer* pBuffs[] = {r->_vertexBuffer};
-    context()->SetVertexBuffers(0, 1, pBuffs, &offset, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
-    context()->SetIndexBuffer(r->_indexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    IBuffer* buffs[] = {r->vertex_buffer};
+    context()->SetVertexBuffers(0, 1, buffs, &offset, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
+    context()->SetIndexBuffer(r->index_buffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
     // Set the pipeline state
-	if(r->_pso != _lastPSOInRender)
+    if(r->pso_ != last_pso_in_render_)
     {
-    	//std::cout << "PSO changed" << std::endl;
-    	context()->SetPipelineState(r->_pso);
-    	_lastPSOInRender = r->_pso;
+        context()->SetPipelineState(r->pso_);
+        last_pso_in_render_ = r->pso_;
     }
-    context()->CommitShaderResources(r->_srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    context()->CommitShaderResources(r->srb_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
     DrawIndexedAttribs attr;     // This is an indexed draw call
     attr.IndexType  = VT_UINT32; // Index type
-    attr.NumIndices = r->_indexCount;
+    attr.NumIndices = r->index_count;
     attr.Flags = DRAW_FLAG_VERIFY_ALL;
     context()->DrawIndexed(attr);
 
-    _current_render_matrices = prev_render_matrices;
+    current_render_matrices_ = prev_render_matrices;
 }
 
 void SceneManager::render(RawRenderable* r, const Matrices& matrices)
 {
-	const Matrices* prev_render_matrices = _current_render_matrices;
-	_current_render_matrices = &matrices;
-	//_worldViewProj = _viewProj * world;
-	//_worldViewProjInv = _worldViewProj.inverse();
-
-	r->render(this);
-	_current_render_matrices = prev_render_matrices;
+    const Matrices* prev_render_matrices = current_render_matrices_;
+    current_render_matrices_ = &matrices;
+    r->render(this);
+    current_render_matrices_ = prev_render_matrices;
 }
 
 }

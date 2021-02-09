@@ -13,7 +13,7 @@
 
 namespace dg {
 
-RenderWindow::RenderWindow(RenderWindowListener* listener) : d(new RenderWindowPrivate), _listener(listener)
+RenderWindow::RenderWindow(RenderWindowListener* listener) : d(new RenderWindowPrivate), listener_(listener)
 {
 }
 
@@ -24,7 +24,7 @@ RenderWindow::~RenderWindow()
 
 void RenderWindow::setListener(RenderWindowListener* listener)
 {
-    _listener = listener;
+    listener_ = listener;
 }
 
 
@@ -40,12 +40,12 @@ IDeviceContext* RenderWindow::context()
 
 ISwapChain* RenderWindow::swapChain()
 {
-    return d->swapChain;
+    return d->swap_chain;
 }
 
 IEngineFactory* RenderWindow::engineFactory()
 {
-    return d->engineFactory;
+    return d->engine_factory;
 }
 
 
@@ -60,13 +60,13 @@ void RenderWindow::spin()
 void RenderWindow::addShortcut(const KeySequence &key_seq,
         std::function<void()> on_activate, const std::string &info_text)
 {
-    _shortcuts.addShortcut(key_seq, on_activate, info_text);
+    shortcuts_.addShortcut(key_seq, on_activate, info_text);
 }
 
 void RenderWindow::addShortcut(const std::string &key_seq,
         std::function<void()> on_activate, const std::string &info_text)
 {
-    _shortcuts.addShortcut(key_seq, on_activate, info_text);
+    shortcuts_.addShortcut(key_seq, on_activate, info_text);
 }
 
 ImFont* RenderWindow::addFont(const std::string& font_filename, int font_size)
@@ -102,14 +102,14 @@ void RenderWindow::initialize()
 
     d->gui.reset(new ImGuiIntegration(device(), scdesc.ColorBufferFormat, scdesc.DepthBufferFormat, scdesc.Width, scdesc.Height));
 
-    _listener->initialize();
+    listener_->initialize();
 }
 
 void RenderWindow::render()
 {
     d->gui->NewFrame();
 
-    _listener->render();
+    listener_->render();
 
     ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
     Cursor cursor = Cursor::Arrow;
@@ -131,7 +131,7 @@ void RenderWindow::render()
 
     d->gui->Render(context());
 
-    if(!_listener->present())
+    if(!listener_->present())
         swapChain()->Present();
 }
 
@@ -143,53 +143,53 @@ void RenderWindow::resizeEvent(const ResizeEvent& event)
         io.DisplaySize = ImVec2(event.width, event.height);
     }
 
-    _listener->resizeEvent(event);
+    listener_->resizeEvent(event);
 
 
 }
 
 void RenderWindow::focusOutEvent()
 {
-    _shortcuts.focusOutEvent();
-    _listener->focusOutEvent();
+    shortcuts_.focusOutEvent();
+    listener_->focusOutEvent();
 }
 
 void RenderWindow::keyPressEvent(const KeyEvent& event)
 {
-    _shortcuts.keyPressEvent(event);
+    shortcuts_.keyPressEvent(event);
     d->gui->keyPressEvent(event);
-    _listener->keyPressEvent(event);
+    listener_->keyPressEvent(event);
 }
 
 void RenderWindow::keyReleaseEvent(const KeyEvent& event)
 {
-    _shortcuts.keyReleaseEvent(event);
+    shortcuts_.keyReleaseEvent(event);
     d->gui->keyReleaseEvent(event);
-    _listener->keyReleaseEvent(event);
+    listener_->keyReleaseEvent(event);
 }
 
 void RenderWindow::mouseMoveEvent(const MouseEvent& event)
 {
     d->gui->mouseMoveEvent(event);
-    _listener->mouseMoveEvent(event);
+    listener_->mouseMoveEvent(event);
 }
 
 void RenderWindow::mousePressEvent(const MouseEvent& event)
 {
     d->gui->mousePressEvent(event);
-    _listener->mousePressEvent(event);
+    listener_->mousePressEvent(event);
 }
 
 void RenderWindow::mouseReleaseEvent(const MouseEvent& event)
 {
     d->gui->mouseReleaseEvent(event);
-    _listener->mouseReleaseEvent(event);
+    listener_->mouseReleaseEvent(event);
 }
 
 void RenderWindow::wheelEvent(const WheelEvent& event)
 {
     d->gui->wheelEvent(event);
-    _listener->wheelEvent(event);
+    listener_->wheelEvent(event);
 }
 
 
@@ -200,8 +200,8 @@ typedef std::map<std::string, RenderWindowFactory*> FactoryRegistryMap;
 
 FactoryRegistryMap& factoryRegistry()
 {
-    static FactoryRegistryMap s_factoryRegistry;
-    return s_factoryRegistry;
+    static FactoryRegistryMap s_factory_registry;
+    return s_factory_registry;
 }
 
 std::string diligent_getLibraryPath(const std::string& backendName)

@@ -55,9 +55,9 @@ private:
     };
     using X11DisplayPtr = std::unique_ptr<Display, X11DisplayDeleter>;
 
-    X11DisplayPtr _display;
+    X11DisplayPtr display_;
 
-    std::vector<char> _grab_buffer;
+    std::vector<char> grab_buffer_;
 };
 
 
@@ -67,13 +67,13 @@ XCBOpenGLRenderWindow::XCBOpenGLRenderWindow(RenderWindowListener* listener) : X
 }
 
 
-static bool create_context_error_handler_flag;
+static bool g_create_context_error_handler_flag;
 
 static int create_context_error_handler(Display *dpy, XErrorEvent *error)
 {
     (void) dpy;
     (void) error->error_code;
-    create_context_error_handler_flag = true;
+    g_create_context_error_handler_flag = true;
     return 0;
 }
 
@@ -83,10 +83,10 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
 
     // Open Xlib Display
     Display* display = XOpenDisplay(0);
-    _display.reset(display);
+    display_.reset(display);
 
 
-    if(!_display)
+    if(!display_)
         DG_THROW("Can't open display");
 
     default_screen = DefaultScreen(display);
@@ -111,7 +111,7 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
     screen = screen_iter.data;
 
 
-    int visualID = 0;
+    int visual_id = 0;
 
     // Query framebuffer configurations that match visual_attribs
 
@@ -141,7 +141,7 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
 
     // Select first framebuffer config and query visualID
     GLXFBConfig fb_config = fb_configs[0];
-    glXGetFBConfigAttrib(display, fb_config, GLX_VISUAL_ID , &visualID);
+    glXGetFBConfigAttrib(display, fb_config, GLX_VISUAL_ID , &visual_id);
 
     /* Create XID's for colormap and window */
     xcb_colormap_t colormap = xcb_generate_id(connection);
@@ -152,10 +152,10 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
             XCB_COLORMAP_ALLOC_NONE,
             colormap,
             screen->root,
-            visualID
+            visual_id
     );
 
-    createWindow(connection, screen->root, visualID, options, colormap);
+    createWindow(connection, screen->root, visual_id, options, colormap);
 
     XVisualInfo* vi = glXGetVisualFromFBConfig(display, fb_config);
 
@@ -197,7 +197,7 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
     GLXContext ctx = nullptr;
 
     XErrorHandler old_handler = XSetErrorHandler(create_context_error_handler); // set an error handler that eats all errors
-    create_context_error_handler_flag = False;
+    g_create_context_error_handler_flag = False;
     
     // probe through the OpenGL versions (latest first) and try to create the context 
     for (int i = 0; gl_versions[i].major > 0; i++) 
@@ -210,9 +210,9 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
             None
         };
 
-        create_context_error_handler_flag = false;
+        g_create_context_error_handler_flag = false;
         ctx  = glXCreateContextAttribsARB(display, fb_config, NULL, 1, context_attribs);
-        if (create_context_error_handler_flag)
+        if (g_create_context_error_handler_flag)
             ctx = nullptr;
 
         if(ctx)
@@ -228,27 +228,27 @@ void XCBOpenGLRenderWindow::create(const CreationOptions& options)
     if (!ctx)
         DG_THROW("Failed to create GL context.\n");
 
-    if(!glXMakeCurrent(display, _window, ctx))
+    if(!glXMakeCurrent(display, window_, ctx))
         DG_THROW("glxMakeCurrent failed!");
 
 
-    Diligent::SwapChainDesc SCDesc;
-    SCDesc.Usage |= SWAP_CHAIN_USAGE_COPY_SOURCE;
+    Diligent::SwapChainDesc sc_desc;
+    sc_desc.Usage |= SWAP_CHAIN_USAGE_COPY_SOURCE;
 
-    Diligent::Uint32        NumDeferredCtx = 0;
+    Diligent::Uint32        num_deferred_ctx = 0;
     // Declare function pointer
-    auto* pFactoryOpenGL = Diligent::GetEngineFactoryOpenGL();
+    auto* factory_open_gl = Diligent::GetEngineFactoryOpenGL();
 
-    Diligent::EngineGLCreateInfo CreationAttribs;
-    CreationAttribs.Window.WindowId = _window;
-    CreationAttribs.Window.pDisplay = _display.get();
-    pFactoryOpenGL->CreateDeviceAndSwapChainGL(
-        CreationAttribs, &d->device, &d->context, SCDesc, &d->swapChain);
+    Diligent::EngineGLCreateInfo creation_attribs;
+    creation_attribs.Window.WindowId = window_;
+    creation_attribs.Window.pDisplay = display_.get();
+    factory_open_gl->CreateDeviceAndSwapChainGL(
+        creation_attribs, &d->device, &d->context, sc_desc, &d->swap_chain);
 
     xcb_flush(connection);
 
     initialize();
-    resizeEvent(ResizeEvent{_width,  _height});
+    resizeEvent(ResizeEvent{width_,  height_});
 }
 
 class XCBOpenGLRenderWindowFactory : public RenderWindowFactory
@@ -273,7 +273,7 @@ public:
 
 };
 
-XCBOpenGLRenderWindowFactory g_XCBOpenGLRenderWindowFactory;
+XCBOpenGLRenderWindowFactory g_xcb_open_gl_render_window_factory;
 
 
 }

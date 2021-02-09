@@ -14,12 +14,12 @@ namespace dg {
 class XCBKeyboard
 {
 
-	struct XKBStateDeleter {
-		void operator()(struct xkb_state *state) const { return xkb_state_unref(state); }
-	};
-	using XKBStatePtr = std::unique_ptr<struct xkb_state, XKBStateDeleter>;
+    struct XKBStateDeleter {
+        void operator()(struct xkb_state *state) const { return xkb_state_unref(state); }
+    };
+    using XKBStatePtr = std::unique_ptr<struct xkb_state, XKBStateDeleter>;
 
-	struct XKBKeymapDeleter {
+    struct XKBKeymapDeleter {
         void operator()(struct xkb_keymap *keymap) const { return xkb_keymap_unref(keymap); }
     };
     using XKBKeymapPtr = std::unique_ptr<struct xkb_keymap, XKBKeymapDeleter>;
@@ -31,38 +31,38 @@ class XCBKeyboard
 
 public:
 
-	XCBKeyboard(xcb_connection_t* c);
+    XCBKeyboard(xcb_connection_t* c);
 
 
-	void updateKeymap();
+    void updateKeymap();
 
-	int keycodeToKey(xcb_keycode_t code, std::uint16_t state, std::string* text = nullptr, std::uint32_t* unicode = nullptr);
-
-
-	static void initializeXKB(xcb_connection_t* connection);
+    int keycodeToKey(xcb_keycode_t code, std::uint16_t state, std::string* text = nullptr, std::uint32_t* unicode = nullptr);
 
 
-private:
-
-	void updateXKBMods();
-	xkb_mod_mask_t xkbModMask(std::uint16_t state);
-	int keysymToKey(xkb_keysym_t keysym);
-	ModifierKey stateToModifier(std::uint16_t state);
-
-
+    static void initializeXKB(xcb_connection_t* connection);
 
 
 private:
 
-	xcb_connection_t* _connection;
-	XKBContextPtr _xkb_context;
-	XKBStatePtr _xkb_state;
-	XKBKeymapPtr _xkb_keymap;
+    void updateXKBMods();
+    xkb_mod_mask_t xkbModMask(std::uint16_t state);
+    int keysymToKey(xkb_keysym_t keysym);
+    ModifierKey stateToModifier(std::uint16_t state);
+
+
 
 
 private:
 
-    struct xkb_mods {
+    xcb_connection_t* connection_;
+    XKBContextPtr xkb_context_;
+    XKBStatePtr xkb_state_;
+    XKBKeymapPtr xkb_keymap_;
+
+
+private:
+
+    struct XkbMods {
         xkb_mod_index_t shift;
         xkb_mod_index_t lock;
         xkb_mod_index_t control;
@@ -72,7 +72,7 @@ private:
         xkb_mod_index_t mod4;
         xkb_mod_index_t mod5;
     };
-    xkb_mods _xkb_mods;
+    XkbMods xkb_mods_;
 
 
 

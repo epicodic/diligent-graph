@@ -22,17 +22,17 @@
 #define DG_PTR(T)                     \
     DG_DECL_PTR(T)                    \
     template<typename... Args>        \
-	static Ptr make(Args&&... args) { \
+    static Ptr make(Args&&... args) { \
         return std::make_shared<T>(std::forward<Args>(args)...); \
-	}                                 \
+    }                                 \
     template<typename... Args>        \
-	static UniquePtr make_unique(Args&&... args) {            \
+    static UniquePtr make_unique(Args&&... args) {            \
         return UniquePtr(new T(std::forward<Args>(args)...)); \
-	}
+    }
 
 
 #define DG_DECL_PTR_FWD(T)             \
-	using T##Ptr = std::shared_ptr<T>; \
+    using T##Ptr = std::shared_ptr<T>; \
     using T##UniquePtr = std::unique_ptr<T>;
 
 
@@ -41,33 +41,33 @@
 
 
 #define DG_ENUM_FLAGS(EnumType)                                     \
-	inline EnumType                                                 \
-	operator&(EnumType a, EnumType b)                               \
-	{ return EnumType(static_cast<int>(a) & static_cast<int>(b)); } \
-	                                                                \
-	inline EnumType                                                 \
-	operator|(EnumType a, EnumType b)                               \
-	{ return EnumType(static_cast<int>(a) | static_cast<int>(b)); } \
-	                                                                \
-	inline EnumType                                                 \
-	operator^(EnumType a, EnumType b)                               \
-	{ return EnumType(static_cast<int>(a) ^ static_cast<int>(b)); } \
-	                                                                \
-	inline EnumType&                                                \
-	operator|=(EnumType& a, EnumType b)                             \
-	{ return a = a | b; }                                           \
-	                                                                \
-	inline EnumType&                                                \
-	operator&=(EnumType& a, EnumType b)                             \
-	{ return a = a & b; }                                           \
-	                                                                \
-	inline EnumType&                                                \
-	operator^=(EnumType& a, EnumType b)                             \
-	{ return a = a ^ b; }                                           \
-	                                                                \
-	inline EnumType                                                 \
-	operator~(EnumType a)                                           \
-	{ return EnumType(~static_cast<int>(a)); }
+    inline EnumType                                                 \
+    operator&(EnumType a, EnumType b)                               \
+    { return EnumType(static_cast<int>(a) & static_cast<int>(b)); } \
+                                                                    \
+    inline EnumType                                                 \
+    operator|(EnumType a, EnumType b)                               \
+    { return EnumType(static_cast<int>(a) | static_cast<int>(b)); } \
+                                                                    \
+    inline EnumType                                                 \
+    operator^(EnumType a, EnumType b)                               \
+    { return EnumType(static_cast<int>(a) ^ static_cast<int>(b)); } \
+                                                                    \
+    inline EnumType&                                                \
+    operator|=(EnumType& a, EnumType b)                             \
+    { return a = a | b; }                                           \
+                                                                    \
+    inline EnumType&                                                \
+    operator&=(EnumType& a, EnumType b)                             \
+    { return a = a & b; }                                           \
+                                                                    \
+    inline EnumType&                                                \
+    operator^=(EnumType& a, EnumType b)                             \
+    { return a = a ^ b; }                                           \
+                                                                    \
+    inline EnumType                                                 \
+    operator~(EnumType a)                                           \
+    { return EnumType(~static_cast<int>(a)); }
 
 
 namespace dg {

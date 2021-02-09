@@ -14,43 +14,43 @@ class Shortcuts
 {
 public:
 
-	void addShortcut(const KeySequence& key_seq, std::function<void()> on_activate, const std::string& info_text = std::string());
-	void addShortcut(const std::string& key_seq, std::function<void()> on_activate, const std::string& info_text = std::string());
+    void addShortcut(const KeySequence& key_seq, std::function<void()> on_activate, const std::string& info_text = std::string());
+    void addShortcut(const std::string& key_seq, std::function<void()> on_activate, const std::string& info_text = std::string());
 
 public:
 
-	void keyPressEvent(const KeyEvent& event);
-	void keyReleaseEvent(const KeyEvent& event);
-	void focusOutEvent();
+    void keyPressEvent(const KeyEvent& event);
+    void keyReleaseEvent(const KeyEvent& event);
+    void focusOutEvent();
 
 
-	void reset();
-
-private:
-
-	void matchNext();
-	void selectNewCandidates();
-	void handleCompleted();
+    void reset();
 
 private:
 
-	struct Shortcut
-	{
-		KeySequence key_seq;
-		std::function<void()> on_activate;
-		std::string info_text;
-	};
+    void matchNext();
+    void selectNewCandidates();
+    void handleCompleted();
 
-	struct Candidate
-	{
-		Shortcut* shortcut;
-		int pos;
-	};
+private:
 
-	std::list<Shortcut> _shortcuts;
-	KeySequenceSimKeys _pressed_keys;
+    struct Shortcut
+    {
+        KeySequence key_seq;
+        std::function<void()> on_activate;
+        std::string info_text;
+    };
 
-	std::list<Candidate> _candidates;
+    struct Candidate
+    {
+        Shortcut* shortcut;
+        int pos;
+    };
+
+    std::list<Shortcut> shortcuts_;
+    KeySequenceSimKeys pressed_keys_;
+
+    std::list<Candidate> candidates_;
 
 };
 

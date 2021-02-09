@@ -7,12 +7,12 @@ constexpr float INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 Eigen::Matrix4f Frustum::computeProjectionMatrix() const
 {
 
-    float thetaY (fov * 0.5f);
-    float tanThetaY = std::tan(thetaY);
-    float tanThetaX = tanThetaY * aspect;
+    float theta_y (fov * 0.5f);
+    float tan_theta_y = std::tan(theta_y);
+    float tan_theta_x = tan_theta_y * aspect;
 
-    float half_w = tanThetaX * near_plane;
-    float half_h = tanThetaY * near_plane;
+    float half_w = tan_theta_x * near_plane;
+    float half_h = tan_theta_y * near_plane;
 
     float left   = -principal.x() * 2.0f * half_w;
     float right  = left + 2.0f * half_w;
@@ -23,7 +23,7 @@ Eigen::Matrix4f Frustum::computeProjectionMatrix() const
     float inv_h = 1 / (top - bottom);
     float inv_d = 1 / (far_plane - near_plane);
 
-	// Calc matrix elements
+    // Calc matrix elements
     float A = 2 * near_plane * inv_w;
     float B = 2 * near_plane * inv_h;
     float C = (right + left) * inv_w;
@@ -31,27 +31,27 @@ Eigen::Matrix4f Frustum::computeProjectionMatrix() const
     float q, qn;
 
     if (far_plane == 0)
-	{
-		// Infinite far plane
-		q = INFINITE_FAR_PLANE_ADJUST - 1.0f;
-		qn = near_plane * (INFINITE_FAR_PLANE_ADJUST - 2.0f);
-	}
-	else
-	{
-		q = - (far_plane + near_plane) * inv_d;
-		qn = -2 * (far_plane * near_plane) * inv_d;
-	}
+    {
+        // Infinite far plane
+        q = INFINITE_FAR_PLANE_ADJUST - 1.0f;
+        qn = near_plane * (INFINITE_FAR_PLANE_ADJUST - 2.0f);
+    }
+    else
+    {
+        q = - (far_plane + near_plane) * inv_d;
+        qn = -2 * (far_plane * near_plane) * inv_d;
+    }
 
-    Eigen::Matrix4f projMat;
+    Eigen::Matrix4f proj_mat;
 
-    projMat = Eigen::Matrix4f::Zero();
-    projMat(0,0) = A;
-    projMat(0,2) = C;
-    projMat(1,1) = B;
-    projMat(1,2) = D;
-    projMat(2,2) = q;
-    projMat(2,3) = qn;
-    projMat(3,2) = -1;
+    proj_mat = Eigen::Matrix4f::Zero();
+    proj_mat(0,0) = A;
+    proj_mat(0,2) = C;
+    proj_mat(1,1) = B;
+    proj_mat(1,2) = D;
+    proj_mat(2,2) = q;
+    proj_mat(2,3) = qn;
+    proj_mat(3,2) = -1;
 
     /*
      A  0  C 0
@@ -61,7 +61,7 @@ Eigen::Matrix4f Frustum::computeProjectionMatrix() const
 
      */
 
-    return projMat;
+    return proj_mat;
 }
 
 }

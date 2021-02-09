@@ -11,27 +11,27 @@ namespace dg {
 class UnlitMaterial : public Material<material::RasterizerParams, material::Diffuse>
 {
 public:
-	DG_PTR(UnlitMaterial)
+    DG_PTR(UnlitMaterial)
 
-	UnlitMaterial(IRenderDevice* device);
+    UnlitMaterial(IRenderDevice* device);
 
-	virtual void initialize(IRenderDevice* device) override;
-	virtual void setupPSODesc(PipelineStateDesc& desc) override;
+    virtual void initialize(IRenderDevice* device) override;
+    virtual void setupPSODesc(PipelineStateDesc& desc) override;
     virtual void bindPSO(IPipelineState* pso) override;
     virtual void bindSRB(IShaderResourceBinding* srb) override;
-	virtual void prepareForRender(IDeviceContext* context) override;
+    virtual void prepareForRender(IDeviceContext* context) override;
 
-	void setBlendDesc(const RenderTargetBlendDesc& desc);
-
-private:
-
-	struct MaterialVS;
-
-	RenderTargetBlendDesc _blend_desc;
+    void setBlendDesc(const RenderTargetBlendDesc& desc);
 
 private:
 
-	static std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> _shared_shader_programs;
+    struct MaterialVS;
+
+    RenderTargetBlendDesc blend_desc_;
+
+private:
+
+    static std::map<std::pair<IRenderDevice*, int>, std::weak_ptr<ShaderProgram>> shared_shader_programs_;
 };
 
 

@@ -6,6 +6,7 @@
 
 #include <dg/core/fwds.hpp>
 
+#include <dg/material/color.hpp>
 #include <dg/scene/camera.hpp>
 #include <dg/scene/node.hpp>
 #include <dg/scene/render_order.hpp>
@@ -25,112 +26,117 @@ class SceneManager
 {
 public:
 
-	SceneManager();
-	SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain);
+    SceneManager();
+    SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain);
 
-	void setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain);
-
-public:
-
-	IRenderDevice* device()	{ return _device; }
-
-	IDeviceContext* context() { return _context; }
-
-	ISwapChain* swapChain() { return _swapChain; }
-
+    void setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain);
 
 public:
 
-	Node* getRoot() { return _root.get(); }
-	const Node* getRoot() const { return _root.get(); }
-
-	Camera* getCamera() { return _camera; }
-	const Camera* getCamera() const { return _camera; }
-
-	void setCamera(Camera* camera) { _camera = camera; }
-
-public:
-
-	void render();
-
-
-	struct Matrices
-	{
-		Matrix4 worldViewProj;
-		Matrix4 worldView;
-
-		Matrix4 viewProj;
-		Matrix4 view;
-		Matrix4 proj;
-		Vector3 cameraWorldPosition;
-	};
-
-
-	void render(Renderable* r, const Matrices& matrices);
-
-
-	void render(RawRenderable* r, const Matrices& matrices);
-
-
-	// the following values are updated and valid during render() (i.e. in the render() methods of the renderables)
-	const Matrix4& getWorldViewProj() const { return _current_render_matrices->worldViewProj; }
-	//const Matrix4& getWorldViewProjInv() const { return _worldViewProjInv; }
-	const Matrix4& getWorldView() const { return _current_render_matrices->worldView; }
-	//const Matrix4& getWorldViewInv() const { return _worldViewInv; }
-	const Matrix4& getView() const { return _current_render_matrices->view; }
-	//const Matrix4& getViewInv() const { return _viewInv; }
-	const Matrix4& getViewProj() const { return _current_render_matrices->viewProj; }
-	//const Matrix4& getViewProjInv() const { return _viewProjInv; }
-	const Matrix4& getProj() const { return _current_render_matrices->proj; }
-	const Vector3& getCameraWorldPosition() const { return _current_render_matrices->cameraWorldPosition; }
-
-	const SceneManager::Matrices& getRenderMatrices() { return *_current_render_matrices; }
+    IRenderDevice* device()    { return device_; }
+    IDeviceContext* context() { return context_; }
+    ISwapChain* swapChain() { return swap_chain_; }
 
 
 public:
 
-	unsigned int requestStencilId() { return _next_free_stencil_id++; }
+    Node* getRoot() { return root_.get(); }
+    const Node* getRoot() const { return root_.get(); }
+
+    Camera* getCamera() { return camera_; }
+    const Camera* getCamera() const { return camera_; }
+
+    void setCamera(Camera* camera) { camera_ = camera; }
+
+    // general global directional light (sun light, etc.)
+    struct GlobalLight
+    {
+        Vector3 direction;
+        Color   color;
+        float   intensity;
+
+        explicit GlobalLight(const Vector3& direction = Vector3(-1,-1,-1), const Color& color = colors::White, float intensity = 5.0) 
+            : direction(direction), color(color), intensity(intensity) {}
+    };
+
+    void setGlobalLight(const GlobalLight& global_light) {global_light_ = global_light; }
+    const GlobalLight& getGlobalLight() const { return global_light_; }
 
 public:
 
-	void setEnvironmentMap(const std::string& filename);
-	RefCntAutoPtr<ITexture> getEnvironmentMap() const;
+    void render();
+
+
+    struct Matrices
+    {
+        Matrix4 world_view_proj;
+        Matrix4 world_view;
+
+        Matrix4 view_proj;
+        Matrix4 view;
+        Matrix4 proj;
+        Vector3 camera_world_position;
+    };
+
+
+    void render(Renderable* r, const Matrices& matrices);
+
+
+    void render(RawRenderable* r, const Matrices& matrices);
+
+
+    // the following values are updated and valid during render() (i.e. in the render() methods of the renderables)
+    const Matrix4& getWorldViewProj() const { return current_render_matrices_->world_view_proj; }
+    const Matrix4& getWorldView() const { return current_render_matrices_->world_view; }
+    const Matrix4& getView() const { return current_render_matrices_->view; }
+    const Matrix4& getViewProj() const { return current_render_matrices_->view_proj; }
+    const Matrix4& getProj() const { return current_render_matrices_->proj; }
+    const Vector3& getCameraWorldPosition() const { return current_render_matrices_->camera_world_position; }
+
+    const SceneManager::Matrices& getRenderMatrices() { return *current_render_matrices_; }
+
+public:
+
+    unsigned int requestStencilId() { return next_free_stencil_id_++; }
+
+public:
+
+    void setEnvironmentMap(const std::string& filename);
+    RefCntAutoPtr<ITexture> getEnvironmentMap() const;
 
 private:
 
-	void collectRenderables(Node* node);
-
-	void clearRenderQueues();
-
+    void collectRenderables(Node* node);
+    void clearRenderQueues();
 
 private:
 
-	dg::PSOManager _psoManager;
+    dg::PSOManager pso_manager_;
 
-	IRenderDevice*  _device = nullptr;
-	IDeviceContext* _context = nullptr;
-	ISwapChain*     _swapChain = nullptr;
+    IRenderDevice*  device_ = nullptr;
+    IDeviceContext* context_ = nullptr;
+    ISwapChain*     swap_chain_ = nullptr;
 
-	//std::deque<Object*> _renderQueue;
-	typedef std::deque<Object*> RenderQueue;
-	std::map<RenderOrder, RenderQueue> _renderQueues;
+    using RenderQueue = std::deque<Object *>;
+    std::map<RenderOrder, RenderQueue> renderQueues_;
 
-	Node::Ptr _root;
-	Camera* _camera = nullptr;
+    Node::Ptr root_;
+    Camera* camera_ = nullptr;
+    GlobalLight global_light_;
 
-	Camera _default_camera;
-	Node::Ptr _default_camera_node;
+    Camera default_camera_;
+    Node::Ptr default_camera_node_;
 
-	Matrices _render_matrices;
-	const Matrices* _current_render_matrices = nullptr;
+    Matrices render_matrices_;
+    const Matrices* current_render_matrices_ = nullptr;
 
-	IPipelineState* _lastPSOInRender = nullptr;
-	IMaterial* _lastMaterialInRender = nullptr;
-	bool _needCommonConstantsVSUpdateInRender = true;
+    IPipelineState* last_pso_in_render_ = nullptr;
+    IMaterial* last_material_in_render_ = nullptr;
+    bool need_common_constants_vs_update_in_render_ = true;
 
-	unsigned int _next_free_stencil_id=10;
+    unsigned int next_free_stencil_id_=10;
 
-	RefCntAutoPtr<ITexture> _environment_map;
+    RefCntAutoPtr<ITexture> environment_map_;
 
 
 };

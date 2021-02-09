@@ -23,41 +23,41 @@ class Renderable : public Object
 
 public:
 
-	Renderable() : Object(type_id<Renderable>()) {}
+    Renderable() : Object(type_id<Renderable>()) {}
 
-	virtual ~Renderable() = default;
+    virtual ~Renderable() = default;
 
 public:
 
     void setRenderOrder(RenderOrder order)
     {
-        _render_order = order;
+        render_order = order;
     }
 
 protected:
 
-	void setPsoNeedsUpdate() { _pso_needs_update = true; }
+    void setPsoNeedsUpdate() { pso_needs_update_ = true; }
 
 public:
 
-	friend class SceneManager;
+    friend class SceneManager;
 
-	IMaterial::Ptr _material;
+    IMaterial::Ptr material;
 
-	RenderOrder                _render_order;
-	RasterizerStateDesc        _rasterizerDesc;
-	DepthStencilStateDesc      _depthStencilDesc;
-	RefCntAutoPtr<IBuffer>     _vertexBuffer;
-	RefCntAutoPtr<IBuffer>     _indexBuffer;
-	std::uint32_t              _indexCount = 0;
-	std::vector<LayoutElement> _inputLayout;
-	PRIMITIVE_TOPOLOGY         _primitiveTopology = PRIMITIVE_TOPOLOGY_UNDEFINED;
+    RenderOrder                render_order;
+    RasterizerStateDesc        rasterizer_desc;
+    DepthStencilStateDesc      depth_stencil_desc;
+    RefCntAutoPtr<IBuffer>     vertex_buffer;
+    RefCntAutoPtr<IBuffer>     index_buffer;
+    std::uint32_t              index_count = 0;
+    std::vector<LayoutElement> input_layout;
+    PRIMITIVE_TOPOLOGY         primitive_topology = PRIMITIVE_TOPOLOGY_UNDEFINED;
 
 private:
-	// managed by SceneManager
-	bool _pso_needs_update = true;
-	IPipelineState* _pso = nullptr;
-	RefCntAutoPtr<IShaderResourceBinding> _srb;
+    // managed by SceneManager
+    bool pso_needs_update_ = true;
+    IPipelineState* pso_ = nullptr;
+    RefCntAutoPtr<IShaderResourceBinding> srb_;
 };
 
 

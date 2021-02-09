@@ -52,7 +52,7 @@ void main(in VSInput VSIn, out PSInput PSIn)
 )";
 
 
-static const char* PixelShaderSource = R"(
+static const char* g_pixel_shader_source = R"(
 struct PSInput
 {
     float4 pos : SV_POSITION;
@@ -75,15 +75,15 @@ struct ImGuiImplDg::Pimpl
     IRenderDevice* device = nullptr;
     RefCntAutoPtr<IBuffer>                vb;
     RefCntAutoPtr<IBuffer>                ib;
-    RefCntAutoPtr<IBuffer>                vertexConstantBuffer;
+    RefCntAutoPtr<IBuffer>                vertex_constant_buffer;
     RefCntAutoPtr<IPipelineState>         pso;
-    RefCntAutoPtr<ITextureView>           fontSRV;
+    RefCntAutoPtr<ITextureView>           font_srv;
     RefCntAutoPtr<IShaderResourceBinding> srb;
-    IShaderResourceVariable*              textureVar = nullptr;
-    std::uint16_t                         backBufferFmt = 0;
-    std::uint16_t                         depthBufferFmt = 0;
-    std::uint32_t                         vertexBufferSize = 0;
-    std::uint32_t                         indexBufferSize  = 0;
+    IShaderResourceVariable*              texture_var = nullptr;
+    std::uint16_t                         back_buffer_fmt = 0;
+    std::uint16_t                         depth_buffer_fmt = 0;
+    std::uint32_t                         vertex_buffer_size = 0;
+    std::uint32_t                         index_buffer_size  = 0;
 
     ImGuiContext* imgui_ctx = nullptr;
 };
@@ -91,24 +91,24 @@ struct ImGuiImplDg::Pimpl
 
 
 ImGuiImplDg::ImGuiImplDg(IRenderDevice* device,
-		                 std::uint16_t  backBufferFmt,
-						 std::uint16_t  depthBufferFmt,
-						 std::uint32_t  initialVertexBufferSize,
-						 std::uint32_t  initialIndexBufferSize) : d(new Pimpl)
+                        std::uint16_t  back_buffer_fmt,
+                        std::uint16_t  depth_buffer_fmt,
+                        std::uint32_t  initial_vertex_buffer_size,
+                        std::uint32_t  initial_index_buffer_size) : d(new Pimpl)
 {
-	d->device = device;
-	d->backBufferFmt = backBufferFmt;
-	d->depthBufferFmt = depthBufferFmt;
-	d->vertexBufferSize = initialVertexBufferSize;
-	d->indexBufferSize = initialIndexBufferSize;
+    d->device = device;
+    d->back_buffer_fmt = back_buffer_fmt;
+    d->depth_buffer_fmt = depth_buffer_fmt;
+    d->vertex_buffer_size = initial_vertex_buffer_size;
+    d->index_buffer_size = initial_index_buffer_size;
 
 
-	IMGUI_CHECKVERSION();
-	ImGuiContext* oldctx = ImGui::GetCurrentContext();
+    IMGUI_CHECKVERSION();
+    ImGuiContext* oldctx = ImGui::GetCurrentContext();
 
-	d->imgui_ctx = ImGui::CreateContext(oldctx ? ImGui::GetIO().Fonts : nullptr);
+    d->imgui_ctx = ImGui::CreateContext(oldctx ? ImGui::GetIO().Fonts : nullptr);
 
-	ImGui::SetCurrentContext(d->imgui_ctx);
+    ImGui::SetCurrentContext(d->imgui_ctx);
 
     ImGuiIO& io            = ImGui::GetIO();
     io.BackendRendererName = "ImGuiImplDg";
@@ -118,7 +118,7 @@ ImGuiImplDg::ImGuiImplDg(IRenderDevice* device,
 
     createDeviceObjects();
 
-	ImGui::SetCurrentContext(oldctx);
+    ImGui::SetCurrentContext(oldctx);
 
 }
 
@@ -131,7 +131,7 @@ ImGuiImplDg::~ImGuiImplDg()
 
 ImGuiContext* ImGuiImplDg::getImGuiContext()
 {
-	return d->imgui_ctx;
+    return d->imgui_ctx;
 }
 
 
@@ -139,9 +139,9 @@ void ImGuiImplDg::invalidateDeviceObjects()
 {
     d->vb.Release();
     d->ib.Release();
-    d->vertexConstantBuffer.Release();
+    d->vertex_constant_buffer.Release();
     d->pso.Release();
-    d->fontSRV.Release();
+    d->font_srv.Release();
     d->srb.Release();
 }
 
@@ -149,58 +149,58 @@ void ImGuiImplDg::createDeviceObjects()
 {
     invalidateDeviceObjects();
 
-    ShaderCreateInfo ShaderCI;
-    ShaderCI.UseCombinedTextureSamplers = true;
-    ShaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
+    ShaderCreateInfo shader_ci;
+    shader_ci.UseCombinedTextureSamplers = true;
+    shader_ci.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
 
-    RefCntAutoPtr<IShader> pVS;
+    RefCntAutoPtr<IShader> vs;
     {
-        ShaderCI.Desc.ShaderType = SHADER_TYPE_VERTEX;
-        ShaderCI.Desc.Name       = "Imgui VS";
-        ShaderCI.Source          = VertexShaderSource;
-        d->device->CreateShader(ShaderCI, &pVS);
+        shader_ci.Desc.ShaderType = SHADER_TYPE_VERTEX;
+        shader_ci.Desc.Name       = "Imgui VS";
+        shader_ci.Source          = VertexShaderSource;
+        d->device->CreateShader(shader_ci, &vs);
     }
 
-    RefCntAutoPtr<IShader> pPS;
+    RefCntAutoPtr<IShader> ps;
     {
-        ShaderCI.Desc.ShaderType = SHADER_TYPE_PIXEL;
-        ShaderCI.Desc.Name       = "Imgui PS";
-        ShaderCI.Source          = PixelShaderSource;
-        d->device->CreateShader(ShaderCI, &pPS);
+        shader_ci.Desc.ShaderType = SHADER_TYPE_PIXEL;
+        shader_ci.Desc.Name       = "Imgui PS";
+        shader_ci.Source          = g_pixel_shader_source;
+        d->device->CreateShader(shader_ci, &ps);
     }
 
-    PipelineStateCreateInfo PSOCreateInfo;
-    PipelineStateDesc&      PSODesc = PSOCreateInfo.PSODesc;
+    PipelineStateCreateInfo pso_create_info;
+    PipelineStateDesc&      pso_desc = pso_create_info.PSODesc;
 
-    PSODesc.Name           = "ImGUI PSO";
-    auto& GraphicsPipeline = PSODesc.GraphicsPipeline;
+    pso_desc.Name           = "ImGUI PSO";
+    auto& graphics_pipeline = pso_desc.GraphicsPipeline;
 
-    GraphicsPipeline.NumRenderTargets  = 1;
-    GraphicsPipeline.RTVFormats[0]     = (TEXTURE_FORMAT) d->backBufferFmt;
-    GraphicsPipeline.DSVFormat         = (TEXTURE_FORMAT) d->depthBufferFmt;
-    GraphicsPipeline.PrimitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    graphics_pipeline.NumRenderTargets  = 1;
+    graphics_pipeline.RTVFormats[0]     = (TEXTURE_FORMAT) d->back_buffer_fmt;
+    graphics_pipeline.DSVFormat         = (TEXTURE_FORMAT) d->depth_buffer_fmt;
+    graphics_pipeline.PrimitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    GraphicsPipeline.pVS = pVS;
-    GraphicsPipeline.pPS = pPS;
+    graphics_pipeline.pVS = vs;
+    graphics_pipeline.pPS = ps;
 
-    GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
-    GraphicsPipeline.RasterizerDesc.ScissorEnable = false; // TODO: True!
-    GraphicsPipeline.DepthStencilDesc.DepthEnable = true;
-    GraphicsPipeline.RasterizerDesc.DepthClipEnable = false; // TODO: Remove
-
-
-    DepthStencilStateDesc depthStencilDesc;
-	depthStencilDesc.DepthEnable = true;
-	depthStencilDesc.DepthFunc = COMPARISON_FUNC_ALWAYS;
-	depthStencilDesc.StencilEnable = true;
-	depthStencilDesc.FrontFace.StencilPassOp = STENCIL_OP_KEEP;
-	depthStencilDesc.FrontFace.StencilFunc = COMPARISON_FUNC_EQUAL;
-	depthStencilDesc.BackFace = depthStencilDesc.FrontFace;
+    graphics_pipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
+    graphics_pipeline.RasterizerDesc.ScissorEnable = false; // TODO: True!
+    graphics_pipeline.DepthStencilDesc.DepthEnable = true;
+    graphics_pipeline.RasterizerDesc.DepthClipEnable = false; // TODO: Remove
 
 
-    GraphicsPipeline.DepthStencilDesc = depthStencilDesc;
+    DepthStencilStateDesc depth_stencil_desc;
+    depth_stencil_desc.DepthEnable = true;
+    depth_stencil_desc.DepthFunc = COMPARISON_FUNC_ALWAYS;
+    depth_stencil_desc.StencilEnable = true;
+    depth_stencil_desc.FrontFace.StencilPassOp = STENCIL_OP_KEEP;
+    depth_stencil_desc.FrontFace.StencilFunc = COMPARISON_FUNC_EQUAL;
+    depth_stencil_desc.BackFace = depth_stencil_desc.FrontFace;
 
-    auto& RT0                 = GraphicsPipeline.BlendDesc.RenderTargets[0];
+
+    graphics_pipeline.DepthStencilDesc = depth_stencil_desc;
+
+    auto& RT0                 = graphics_pipeline.BlendDesc.RenderTargets[0];
     RT0.BlendEnable           = true;
     RT0.SrcBlend              = BLEND_FACTOR_SRC_ALPHA;
     RT0.DestBlend             = BLEND_FACTOR_INV_SRC_ALPHA;
@@ -210,44 +210,44 @@ void ImGuiImplDg::createDeviceObjects()
     RT0.BlendOpAlpha          = BLEND_OPERATION_ADD;
     RT0.RenderTargetWriteMask = COLOR_MASK_ALL;
 
-    LayoutElement VSInputs[] //
+    LayoutElement vs_inputs[] //
         {
             {0, 0, 2, VT_FLOAT32},    // pos
             {1, 0, 2, VT_FLOAT32},    // uv
             {2, 0, 4, VT_UINT8, true} // col
         };
-    GraphicsPipeline.InputLayout.NumElements    = 3;
-    GraphicsPipeline.InputLayout.LayoutElements = VSInputs;
+    graphics_pipeline.InputLayout.NumElements    = 3;
+    graphics_pipeline.InputLayout.LayoutElements = vs_inputs;
 
-    ShaderResourceVariableDesc Variables[] =
+    ShaderResourceVariableDesc variables[] =
         {
             {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC} //
         };
-    PSODesc.ResourceLayout.Variables    = Variables;
-    PSODesc.ResourceLayout.NumVariables = 1;
+    pso_desc.ResourceLayout.Variables    = variables;
+    pso_desc.ResourceLayout.NumVariables = 1;
 
-    SamplerDesc SamLinearWrap;
-    SamLinearWrap.AddressU = TEXTURE_ADDRESS_WRAP;
-    SamLinearWrap.AddressV = TEXTURE_ADDRESS_WRAP;
-    SamLinearWrap.AddressW = TEXTURE_ADDRESS_WRAP;
-    StaticSamplerDesc StaticSamplers[] =
+    SamplerDesc sam_linear_wrap;
+    sam_linear_wrap.AddressU = TEXTURE_ADDRESS_WRAP;
+    sam_linear_wrap.AddressV = TEXTURE_ADDRESS_WRAP;
+    sam_linear_wrap.AddressW = TEXTURE_ADDRESS_WRAP;
+    StaticSamplerDesc static_samplers[] =
         {
-            {SHADER_TYPE_PIXEL, "Texture", SamLinearWrap} //
+            {SHADER_TYPE_PIXEL, "Texture", sam_linear_wrap} //
         };
-    PSODesc.ResourceLayout.StaticSamplers    = StaticSamplers;
-    PSODesc.ResourceLayout.NumStaticSamplers = 1;
+    pso_desc.ResourceLayout.StaticSamplers    = static_samplers;
+    pso_desc.ResourceLayout.NumStaticSamplers = 1;
 
-    d->device->CreatePipelineState(PSOCreateInfo, &d->pso);
+    d->device->CreatePipelineState(pso_create_info, &d->pso);
 
     {
-        BufferDesc BuffDesc;
-        BuffDesc.uiSizeInBytes  = sizeof(ImGuiImplDgShaderConstants);
-        BuffDesc.Usage          = USAGE_DYNAMIC;
-        BuffDesc.BindFlags      = BIND_UNIFORM_BUFFER;
-        BuffDesc.CPUAccessFlags = CPU_ACCESS_WRITE;
-        d->device->CreateBuffer(BuffDesc, nullptr, &d->vertexConstantBuffer);
+        BufferDesc buff_desc;
+        buff_desc.uiSizeInBytes  = sizeof(ImGuiImplDgShaderConstants);
+        buff_desc.Usage          = USAGE_DYNAMIC;
+        buff_desc.BindFlags      = BIND_UNIFORM_BUFFER;
+        buff_desc.CPUAccessFlags = CPU_ACCESS_WRITE;
+        d->device->CreateBuffer(buff_desc, nullptr, &d->vertex_constant_buffer);
     }
-    d->pso->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(d->vertexConstantBuffer);
+    d->pso->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(d->vertex_constant_buffer);
 
     updateFontsTexture();
 }
@@ -260,76 +260,76 @@ void ImGuiImplDg::updateFontsTexture()
     int            width = 0, height = 0;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    TextureDesc FontTexDesc;
-    FontTexDesc.Name      = "ImGuiImplDg font texture";
-    FontTexDesc.Type      = RESOURCE_DIM_TEX_2D;
-    FontTexDesc.Width     = static_cast<Uint32>(width);
-    FontTexDesc.Height    = static_cast<Uint32>(height);
-    FontTexDesc.Format    = TEX_FORMAT_RGBA8_UNORM;
-    FontTexDesc.BindFlags = BIND_SHADER_RESOURCE;
-    FontTexDesc.Usage     = USAGE_STATIC;
+    TextureDesc font_tex_desc;
+    font_tex_desc.Name      = "ImGuiImplDg font texture";
+    font_tex_desc.Type      = RESOURCE_DIM_TEX_2D;
+    font_tex_desc.Width     = static_cast<Uint32>(width);
+    font_tex_desc.Height    = static_cast<Uint32>(height);
+    font_tex_desc.Format    = TEX_FORMAT_RGBA8_UNORM;
+    font_tex_desc.BindFlags = BIND_SHADER_RESOURCE;
+    font_tex_desc.Usage     = USAGE_STATIC;
 
-    TextureSubResData Mip0Data[] = {{pixels, FontTexDesc.Width * 4}};
-    TextureData       InitData(Mip0Data, 1);
+    TextureSubResData mip0_data[] = {{pixels, font_tex_desc.Width * 4}};
+    TextureData       init_data(mip0_data, 1);
 
-    RefCntAutoPtr<ITexture> pFontTex;
-    d->device->CreateTexture(FontTexDesc, &InitData, &pFontTex);
-    d->fontSRV = pFontTex->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
+    RefCntAutoPtr<ITexture> font_tex;
+    d->device->CreateTexture(font_tex_desc, &init_data, &font_tex);
+    d->font_srv = font_tex->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
     d->srb.Release();
     d->pso->CreateShaderResourceBinding(&d->srb, true);
-    d->textureVar = d->srb->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
+    d->texture_var = d->srb->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
     VERIFY_EXPR(d->textureVar != nullptr);
     // Store our identifier
-    io.Fonts->TexID = (ImTextureID)d->fontSRV;
+    io.Fonts->TexID = (ImTextureID)d->font_srv;
 }
 
-void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const RenderParams& params)
+void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* draw_data, const RenderParams& params)
 {
     // Avoid rendering when minimized
-    if (pDrawData->DisplaySize.x <= 0.0f || pDrawData->DisplaySize.y <= 0.0f)
+    if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
         return;
 
     // Create and grow vertex/index buffers if needed
-    if (!d->vb || static_cast<int>(d->vertexBufferSize) < pDrawData->TotalVtxCount)
+    if (!d->vb || static_cast<int>(d->vertex_buffer_size) < draw_data->TotalVtxCount)
     {
-    	d->vb.Release();
-        while (static_cast<int>(d->vertexBufferSize) < pDrawData->TotalVtxCount)
-        	d->vertexBufferSize *= 2;
+        d->vb.Release();
+        while (static_cast<int>(d->vertex_buffer_size) < draw_data->TotalVtxCount)
+            d->vertex_buffer_size *= 2;
 
-        BufferDesc VBDesc;
-        VBDesc.Name           = "Imgui vertex buffer";
-        VBDesc.BindFlags      = BIND_VERTEX_BUFFER;
-        VBDesc.uiSizeInBytes  = d->vertexBufferSize * sizeof(ImDrawVert);
-        VBDesc.Usage          = USAGE_DYNAMIC;
-        VBDesc.CPUAccessFlags = CPU_ACCESS_WRITE;
-        d->device->CreateBuffer(VBDesc, nullptr, &d->vb);
+        BufferDesc vb_desc;
+        vb_desc.Name           = "Imgui vertex buffer";
+        vb_desc.BindFlags      = BIND_VERTEX_BUFFER;
+        vb_desc.uiSizeInBytes  = d->vertex_buffer_size * sizeof(ImDrawVert);
+        vb_desc.Usage          = USAGE_DYNAMIC;
+        vb_desc.CPUAccessFlags = CPU_ACCESS_WRITE;
+        d->device->CreateBuffer(vb_desc, nullptr, &d->vb);
     }
 
-    if (!d->ib || static_cast<int>(d->indexBufferSize) < pDrawData->TotalIdxCount)
+    if (!d->ib || static_cast<int>(d->index_buffer_size) < draw_data->TotalIdxCount)
     {
-    	d->ib.Release();
-        while (static_cast<int>(d->indexBufferSize) < pDrawData->TotalIdxCount)
-        	d->indexBufferSize *= 2;
+        d->ib.Release();
+        while (static_cast<int>(d->index_buffer_size) < draw_data->TotalIdxCount)
+            d->index_buffer_size *= 2;
 
-        BufferDesc IBDesc;
-        IBDesc.Name           = "Imgui index buffer";
-        IBDesc.BindFlags      = BIND_INDEX_BUFFER;
-        IBDesc.uiSizeInBytes  = d->indexBufferSize * sizeof(ImDrawIdx);
-        IBDesc.Usage          = USAGE_DYNAMIC;
-        IBDesc.CPUAccessFlags = CPU_ACCESS_WRITE;
-        d->device->CreateBuffer(IBDesc, nullptr, &d->ib);
+        BufferDesc ib_desc;
+        ib_desc.Name           = "Imgui index buffer";
+        ib_desc.BindFlags      = BIND_INDEX_BUFFER;
+        ib_desc.uiSizeInBytes  = d->index_buffer_size * sizeof(ImDrawIdx);
+        ib_desc.Usage          = USAGE_DYNAMIC;
+        ib_desc.CPUAccessFlags = CPU_ACCESS_WRITE;
+        d->device->CreateBuffer(ib_desc, nullptr, &d->ib);
     }
 
     {
-        MapHelper<ImDrawVert> Verices(ctx, d->vb, MAP_WRITE, MAP_FLAG_DISCARD);
-        MapHelper<ImDrawIdx>  Indices(ctx, d->ib, MAP_WRITE, MAP_FLAG_DISCARD);
+        MapHelper<ImDrawVert> verices(ctx, d->vb, MAP_WRITE, MAP_FLAG_DISCARD);
+        MapHelper<ImDrawIdx>  indices(ctx, d->ib, MAP_WRITE, MAP_FLAG_DISCARD);
 
-        ImDrawVert* vtx_dst = Verices;
-        ImDrawIdx*  idx_dst = Indices;
-        for (int n = 0; n < pDrawData->CmdListsCount; n++)
+        ImDrawVert* vtx_dst = verices;
+        ImDrawIdx*  idx_dst = indices;
+        for (int n = 0; n < draw_data->CmdListsCount; n++)
         {
-            const ImDrawList* cmd_list = pDrawData->CmdLists[n];
+            const ImDrawList* cmd_list = draw_data->CmdLists[n];
             memcpy(vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
             memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
             vtx_dst += cmd_list->VtxBuffer.Size;
@@ -343,41 +343,41 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
     // DisplayPos is (0,0) for single viewport apps.
     {
         //MapHelper<float4x4> CBData(ctx, d->vertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-    	MapHelper<ImGuiImplDgShaderConstants> CBData(ctx, d->vertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
+        MapHelper<ImGuiImplDgShaderConstants> cb_data(ctx, d->vertex_constant_buffer, MAP_WRITE, MAP_FLAG_DISCARD);
 
-    	CBData->Opacity = params.opacity;
+        cb_data->Opacity = params.opacity;
 
-        if(params.worldViewProj == nullptr)
+        if(params.world_view_proj == nullptr)
         {
-			float L = pDrawData->DisplayPos.x;
-			float R = pDrawData->DisplayPos.x + pDrawData->DisplaySize.x;
-			float T = pDrawData->DisplayPos.y;
-			float B = pDrawData->DisplayPos.y + pDrawData->DisplaySize.y;
+            float L = draw_data->DisplayPos.x;
+            float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+            float T = draw_data->DisplayPos.y;
+            float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
 
-			//*CBData = float4x4
-			CBData->ProjectionMatrix = float4x4
-			{
-				2.0f / (R - L),                  0.0f,   0.0f,   0.0f,
-				0.0f,                  2.0f / (T - B),   0.0f,   0.0f,
-				0.0f,                            0.0f,   0.5f,   0.0f,
-				(R + L) / (L - R),  (T + B) / (B - T),   0.5f,   1.0f
-			};
+            //*CBData = float4x4
+            cb_data->ProjectionMatrix = float4x4
+            {
+                2.0f / (R - L),                  0.0f,   0.0f,   0.0f,
+                0.0f,                  2.0f / (T - B),   0.0f,   0.0f,
+                0.0f,                            0.0f,   0.5f,   0.0f,
+                (R + L) / (L - R),  (T + B) / (B - T),   0.5f,   1.0f
+            };
         }
         else
         {
-        	//matrix_to_float4x4t(*params.worldViewProj, *CBData);
-        	matrix_to_float4x4t(*params.worldViewProj, CBData->ProjectionMatrix);
+            //matrix_to_float4x4t(*params.worldViewProj, *CBData);
+            matrix_to_float4x4t(*params.world_view_proj, cb_data->ProjectionMatrix);
         }
     }
 
-    auto DisplayWidth     = static_cast<Uint32>(pDrawData->DisplaySize.x);
-    auto DisplayHeight    = static_cast<Uint32>(pDrawData->DisplaySize.y);
-    auto SetupRenderState = [&]() //
+    auto display_width     = static_cast<Uint32>(draw_data->DisplaySize.x);
+    auto display_height    = static_cast<Uint32>(draw_data->DisplaySize.y);
+    auto setupRenderState = [&]() //
     {
         // Setup shader and vertex buffers
-        Uint32   Offsets[] = {0};
-        IBuffer* pVBs[]    = {d->vb};
-        ctx->SetVertexBuffers(0, 1, pVBs, Offsets, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
+        Uint32   offsets[] = {0};
+        IBuffer* vbs[]    = {d->vb};
+        ctx->SetVertexBuffers(0, 1, vbs, offsets, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
         ctx->SetIndexBuffer(d->ib, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         ctx->SetPipelineState(d->pso);
         ctx->CommitShaderResources(d->srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
@@ -386,15 +386,15 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
         ctx->SetBlendFactors(blend_factor);
 
         Viewport vp;
-        vp.Width    = pDrawData->DisplaySize.x;
-        vp.Height   = pDrawData->DisplaySize.y;
+        vp.Width    = draw_data->DisplaySize.x;
+        vp.Height   = draw_data->DisplaySize.y;
         vp.MinDepth = 0.0f;
         vp.MaxDepth = 1.0f;
         vp.TopLeftX = vp.TopLeftY = 0;
         //ctx->SetViewports(1, &vp, DisplayWidth, DisplayHeight);
     };
 
-    SetupRenderState();
+    setupRenderState();
 
     // Render command lists
     // (Because we merged all buffers into a single one, we maintain our own offset into them)
@@ -402,10 +402,10 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
     int global_vtx_offset = 0;
     ITextureView* last_texture_view = nullptr;
 
-    ImVec2 clip_off = pDrawData->DisplayPos;
-    for (int n = 0; n < pDrawData->CmdListsCount; n++)
+    ImVec2 clip_off = draw_data->DisplayPos;
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
-        const ImDrawList* cmd_list = pDrawData->CmdLists[n];
+        const ImDrawList* cmd_list = draw_data->CmdLists[n];
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -414,7 +414,7 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                    SetupRenderState();
+                    setupRenderState();
                 else
                     pcmd->UserCallback(cmd_list, pcmd);
             }
@@ -436,15 +436,15 @@ void ImGuiImplDg::render(IDeviceContext* ctx, ImDrawData* pDrawData, const Rende
                 if (texture_view != last_texture_view)
                 {
                     last_texture_view = texture_view;
-                    d->textureVar->Set(texture_view);
+                    d->texture_var->Set(texture_view);
                     ctx->CommitShaderResources(d->srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
                 }
 
-                DrawIndexedAttribs DrawAttrs(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? VT_UINT16 : VT_UINT32, DRAW_FLAG_VERIFY_STATES);
-                DrawAttrs.FirstIndexLocation = pcmd->IdxOffset + global_idx_offset;
-                DrawAttrs.BaseVertex         = pcmd->VtxOffset + global_vtx_offset;
+                DrawIndexedAttribs draw_attrs(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? VT_UINT16 : VT_UINT32, DRAW_FLAG_VERIFY_STATES);
+                draw_attrs.FirstIndexLocation = pcmd->IdxOffset + global_idx_offset;
+                draw_attrs.BaseVertex         = pcmd->VtxOffset + global_vtx_offset;
 
-                ctx->DrawIndexed(DrawAttrs);
+                ctx->DrawIndexed(draw_attrs);
             }
         }
         global_idx_offset += cmd_list->IdxBuffer.Size;
