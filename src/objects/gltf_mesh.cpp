@@ -117,12 +117,7 @@ void GLTFMesh::render(SceneManager* manager)
     if(!d->initialized)
         initialize(manager);
 
-
-    // TODO get light info from scene manager
-    float3 light_direction = float3(-1,-1,-1);
-    float4 light_color     = float4(1, 1, 1, 1);
-    float  light_intensity = 5.f;
-
+    SceneManager::GlobalLight light = manager->getGlobalLight();
 
     Vector3 camera_local;
     Matrix4 local_T_model;
@@ -166,8 +161,13 @@ void GLTFMesh::render(SceneManager* manager)
 
     { // map helper scope
         MapHelper<LightAttribs> light_attribs(manager->context(), d->light_attribs_cb, MAP_WRITE, MAP_FLAG_DISCARD);
-        light_attribs->f4Direction = light_direction;
-        light_attribs->f4Intensity = light_color * light_intensity;
+
+        float3 light_direction;
+        vector_to_float4_w0(light.direction, light_attribs->f4Direction);
+
+        float4 light_color;
+        vector_to_float4(light.color.toVector(), light_color);
+        light_attribs->f4Intensity = light_color * light.intensity;
     }
 
     GLTF_PBR_Renderer::RenderInfo render_params;

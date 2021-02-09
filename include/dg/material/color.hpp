@@ -150,6 +150,8 @@ public:
 
     const float* data() const { return reinterpret_cast<const float*>(this); }
 
+    Vector4f toVector() const { return {r,g,b,a}; }
+
     float& operator[](size_t index)
     {
         return data()[index];

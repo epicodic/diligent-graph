@@ -65,13 +65,13 @@
 #define HAS_ARGS(...) BOOL(FIRST(_END_OF_ARGUMENTS_ __VA_ARGS__)())
 #define _END_OF_ARGUMENTS_() 0
 
-#define MAP(m, first, ...)           \
-  m(first)                           \
-  IF_ELSE(HAS_ARGS(__VA_ARGS__))(    \
-    COMMA DEFER2(_MAP)()(m, __VA_ARGS__)   \
-  )(                                 \
-    /* Do nothing, just terminate */ \
-  )
+#define MAP(m, first, ...)                     \
+    m(first)                                   \
+    IF_ELSE(HAS_ARGS(__VA_ARGS__))(            \
+        COMMA DEFER2(_MAP)()(m, __VA_ARGS__)   \
+    )(                                         \
+        /* Do nothing, just terminate */       \
+    )
 #define _MAP() MAP
 
 #define STRINGIZE(x) #x
@@ -86,20 +86,20 @@ SceneManager::SceneManager()
     default_camera_node_ = getRoot()->createChild();
     default_camera_node_->attach(&default_camera_);
     camera_ = &default_camera_;
+    setGlobalLight(GlobalLight());
 }
 
-SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain) : SceneManager()
+SceneManager::SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain) : SceneManager()
 {
-    setDevice(device, context, swapChain);
+    setDevice(device, context, swap_chain);
 }
 
-void SceneManager::setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain)
+void SceneManager::setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain)
 {
     device_ = device;
     context_ = context;
-    swap_chain_ = swapChain;
+    swap_chain_ = swap_chain;
 }
-
 
 void SceneManager::setEnvironmentMap(const std::string& filename)
 {
@@ -129,7 +129,6 @@ void SceneManager::render()
     render_matrices_.view = view_inv.inverse();
 
     render_matrices_.view_proj = render_matrices_.proj*render_matrices_.view;
-    //viewProjInv_ = viewProj_.inverse();
     render_matrices_.camera_world_position = view_inv.block<3,1>(0,3);
 
     collectRenderables(getRoot());
@@ -137,11 +136,9 @@ void SceneManager::render()
     last_pso_in_render_ = nullptr;
     last_material_in_render_ = nullptr;
 
-    //std::cout << std::endl << "RENDER " << std::endl;
     for(auto& p : renderQueues_)
     {
         RenderQueue& queue = p.second;
-        //std::cout << "RenderQueue: " << queue.size() << std::endl;
         for(Object* obj : queue)
         {
             if(obj->typeId() == type_id<Renderable>())
@@ -222,10 +219,7 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
         r->material->setupPSODesc(desc);
 
         std::size_t pso_hash = hash_value(desc);
-        IPipelineState* pso = psoManager_.getPSO(device(),desc);
-
-        //std::cout << "r=" << r << std::endl;
-        //std::cout << " order: " << r->_renderOrder << std::endl;
+        IPipelineState* pso = pso_manager_.getPSO(device(),desc);
 
         // if pso has changed
         if(pso != r->pso_)
@@ -250,7 +244,6 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
 
     if(r->material.get()!=last_material_in_render_)
     {
-        //std::cout << "prepareMaterial" << std::endl;
         r->material->prepareForRender(context());
         last_material_in_render_ = r->material.get();
     }
@@ -264,7 +257,6 @@ void SceneManager::render(Renderable* r, const Matrices& matrices)
     // Set the pipeline state
     if(r->pso_ != last_pso_in_render_)
     {
-        //std::cout << "PSO changed" << std::endl;
         context()->SetPipelineState(r->pso_);
         last_pso_in_render_ = r->pso_;
     }
@@ -283,9 +275,6 @@ void SceneManager::render(RawRenderable* r, const Matrices& matrices)
 {
     const Matrices* prev_render_matrices = current_render_matrices_;
     current_render_matrices_ = &matrices;
-    //_worldViewProj = _viewProj * world;
-    //_worldViewProjInv = _worldViewProj.inverse();
-
     r->render(this);
     current_render_matrices_ = prev_render_matrices;
 }

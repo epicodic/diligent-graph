@@ -96,6 +96,15 @@ inline void vector_to_float3(const Eigen::Matrix<T,3,1>& s, float3& d) // NOLINT
 }
 
 template <typename T>
+inline void vector_to_float4_w0(const Eigen::Matrix<T,3,1>& s, float4& d) // NOLINT
+{
+    d.x = s(0);
+    d.y = s(1);
+    d.z = s(2);
+    d.w = 0.0;
+}
+
+template <typename T>
 inline void vector_to_float4(const Eigen::Matrix<T,4,1>& s, float4& d) // NOLINT
 {
     d.x = s(0);

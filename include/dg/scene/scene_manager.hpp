@@ -6,6 +6,7 @@
 
 #include <dg/core/fwds.hpp>
 
+#include <dg/material/color.hpp>
 #include <dg/scene/camera.hpp>
 #include <dg/scene/node.hpp>
 #include <dg/scene/render_order.hpp>
@@ -26,16 +27,14 @@ class SceneManager
 public:
 
     SceneManager();
-    SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain);
+    SceneManager(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain);
 
-    void setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swapChain);
+    void setDevice(IRenderDevice* device, IDeviceContext* context, ISwapChain* swap_chain);
 
 public:
 
     IRenderDevice* device()    { return device_; }
-
     IDeviceContext* context() { return context_; }
-
     ISwapChain* swapChain() { return swap_chain_; }
 
 
@@ -48,6 +47,20 @@ public:
     const Camera* getCamera() const { return camera_; }
 
     void setCamera(Camera* camera) { camera_ = camera; }
+
+    // general global directional light (sun light, etc.)
+    struct GlobalLight
+    {
+        Vector3 direction;
+        Color   color;
+        float   intensity;
+
+        explicit GlobalLight(const Vector3& direction = Vector3(-1,-1,-1), const Color& color = colors::White, float intensity = 5.0) 
+            : direction(direction), color(color), intensity(intensity) {}
+    };
+
+    void setGlobalLight(const GlobalLight& global_light) {global_light_ = global_light; }
+    const GlobalLight& getGlobalLight() const { return global_light_; }
 
 public:
 
@@ -94,13 +107,11 @@ public:
 private:
 
     void collectRenderables(Node* node);
-
     void clearRenderQueues();
-
 
 private:
 
-    dg::PSOManager psoManager_;
+    dg::PSOManager pso_manager_;
 
     IRenderDevice*  device_ = nullptr;
     IDeviceContext* context_ = nullptr;
@@ -111,6 +122,7 @@ private:
 
     Node::Ptr root_;
     Camera* camera_ = nullptr;
+    GlobalLight global_light_;
 
     Camera default_camera_;
     Node::Ptr default_camera_node_;
